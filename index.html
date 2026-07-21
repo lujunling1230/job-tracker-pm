@@ -1,0 +1,943 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>求职追踪器</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link href="https://fonts.googleapis.com/css2?family=Noto+Serif+SC:wght@400;600;700&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --bg-primary: #f5f0e6;
+            --bg-card: #faf8f3;
+            --bg-hover: #f0ebe0;
+            --text-primary: #333;
+            --text-secondary: #666;
+            --text-muted: #999;
+            --accent: #8b7355;
+            --accent-light: #a8947a;
+            --stage-active: #a8b5a0;
+            --stage-done: #7a8b6e;
+            --stage-pending: #d4cec3;
+            --border: #e0d8c8;
+            --shadow: rgba(139, 115, 85, 0.08);
+            --shadow-hover: rgba(139, 115, 85, 0.15);
+            --bookmark-red: #c4554d;
+            --bookmark-green: #7a8b6e;
+            --bookmark-amber: #c4a55d;
+            --tag-bg: rgba(139, 115, 85, 0.08);
+        }
+
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+
+        body {
+            font-family: 'Noto Serif SC', serif;
+            background-color: var(--bg-primary);
+            color: var(--text-primary);
+            line-height: 1.8;
+            min-height: 100vh;
+            background-image: url("data:image/svg+xml,%3Csvg width='100' height='100' viewBox='0 0 100 100' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noise'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.8' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100' height='100' filter='url(%23noise)' opacity='0.03'/%3E%3C/svg%3E");
+        }
+
+        .container { max-width: 1000px; margin: 0 auto; padding: 32px 24px; }
+
+        /* Header */
+        .header { display: flex; align-items: center; gap: 12px; margin-bottom: 28px; }
+        .header-icon { width: 32px; height: 32px; background: var(--accent); color: #fff; display: flex; align-items: center; justify-content: center; font-size: 1rem; }
+        .header-title h1 { font-size: 1.3rem; font-weight: 600; letter-spacing: 0.1em; }
+        .header-title p { font-size: 0.8rem; color: var(--text-muted); letter-spacing: 0.05em; }
+
+        /* Navigation */
+        .nav-tabs { display: flex; gap: 0; margin-bottom: 32px; border-bottom: 1px solid var(--border); }
+        .nav-tab { padding: 12px 28px; background: transparent; border: none; font-family: 'Noto Serif SC', serif; font-size: 0.9rem; color: var(--text-secondary); cursor: pointer; position: relative; transition: all 0.3s ease; letter-spacing: 0.05em; }
+        .nav-tab:hover { color: var(--text-primary); }
+        .nav-tab.active { color: var(--text-primary); font-weight: 600; }
+        .nav-tab.active::after { content: ''; position: absolute; bottom: -1px; left: 0; right: 0; height: 2px; background: var(--accent); }
+
+        /* View */
+        .view { display: none; animation: fadeIn 0.4s ease; }
+        .view.active { display: block; }
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(8px); } to { opacity: 1; transform: translateY(0); } }
+
+        /* ===== 面试进展表 ===== */
+        .progress-header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 24px; }
+        .progress-title { font-size: 1.1rem; font-weight: 600; letter-spacing: 0.08em; }
+        .add-btn { display: inline-flex; align-items: center; gap: 6px; padding: 8px 18px; background: var(--accent); color: #fff; border: none; font-family: 'Noto Serif SC', serif; font-size: 0.85rem; cursor: pointer; transition: all 0.3s; letter-spacing: 0.05em; }
+        .add-btn:hover { background: var(--accent-light); }
+
+        .big-stat { text-align: center; margin-bottom: 28px; padding: 24px; background: var(--bg-card); border: 1px solid var(--border); }
+        .big-stat-number { font-size: 3rem; font-weight: 700; color: var(--accent); line-height: 1; }
+        .big-stat-label { font-size: 0.85rem; color: var(--text-muted); margin-top: 8px; letter-spacing: 0.05em; }
+
+        /* Gantt Chart */
+        .gantt-chart { margin-bottom: 24px; background: var(--bg-card); border: 1px solid var(--border); padding: 20px; }
+        .gantt-header { display: flex; margin-bottom: 12px; padding-bottom: 8px; border-bottom: 1px solid var(--border); font-size: 0.75rem; color: var(--text-muted); letter-spacing: 0.05em; }
+        .gantt-label-col { width: 200px; flex-shrink: 0; }
+        .gantt-stages { flex: 1; display: flex; }
+        .gantt-stage-label { flex: 1; text-align: center; }
+
+        .gantt-row { display: flex; align-items: center; padding: 10px 0; border-bottom: 1px solid rgba(224, 216, 200, 0.4); }
+        .gantt-row:last-child { border-bottom: none; }
+        .gantt-row:hover { background: var(--bg-hover); }
+        .gantt-company-info { width: 200px; flex-shrink: 0; padding-right: 16px; }
+        .gantt-company-name { font-size: 0.9rem; font-weight: 600; }
+        .gantt-job-title { font-size: 0.8rem; color: var(--text-secondary); }
+        .gantt-company-meta { font-size: 0.75rem; color: var(--text-muted); margin-top: 2px; }
+        .gantt-bar-area { flex: 1; display: flex; height: 24px; position: relative; }
+        .gantt-stage-cell { flex: 1; border-right: 1px dashed var(--border); position: relative; }
+        .gantt-stage-cell:last-child { border-right: none; }
+        .gantt-progress-bar { position: absolute; top: 4px; height: 16px; background: var(--stage-active); opacity: 0.7; transition: all 0.3s; }
+        .gantt-progress-bar.done { background: var(--stage-done); }
+        .gantt-progress-bar.rejected { background: var(--bookmark-red); }
+        .gantt-current-dot { position: absolute; top: 50%; transform: translate(-50%, -50%); width: 10px; height: 10px; background: var(--accent); border-radius: 50%; z-index: 2; }
+
+        .gantt-actions { display: flex; gap: 4px; margin-left: 12px; opacity: 0; transition: opacity 0.3s; }
+        .gantt-row:hover .gantt-actions { opacity: 1; }
+        .gantt-action-btn { width: 24px; height: 24px; border: none; background: var(--bg-primary); cursor: pointer; font-size: 0.8rem; color: var(--text-muted); display: flex; align-items: center; justify-content: center; }
+        .gantt-action-btn:hover { background: var(--accent); color: #fff; }
+
+        /* Company Detail Expand */
+        .company-detail { display: none; padding: 16px 20px; background: var(--bg-primary); border-top: 1px solid var(--border); margin: 0 -20px -20px; }
+        .company-detail.active { display: block; animation: fadeIn 0.3s ease; }
+        .detail-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 12px; margin-bottom: 16px; }
+        .detail-item { font-size: 0.8rem; }
+        .detail-item-label { color: var(--text-muted); margin-bottom: 2px; }
+        .detail-item-value { color: var(--text-primary); font-weight: 600; }
+
+        .prep-section { margin-top: 12px; padding-top: 12px; border-top: 1px dashed var(--border); }
+        .prep-section-title { font-size: 0.8rem; color: var(--accent); font-weight: 600; margin-bottom: 6px; }
+        .prep-section-content { font-size: 0.8rem; color: var(--text-secondary); line-height: 1.7; white-space: pre-wrap; }
+
+        /* ===== 求职渠道 ===== */
+        .channel-section { margin-bottom: 28px; }
+        .channel-header { display: flex; align-items: center; gap: 10px; margin-bottom: 14px; }
+        .channel-icon { font-size: 1.1rem; }
+        .channel-title { font-size: 1rem; font-weight: 600; letter-spacing: 0.05em; }
+        .channel-list { display: grid; grid-template-columns: repeat(2, 1fr); gap: 10px; }
+        .channel-item { display: flex; align-items: center; gap: 8px; padding: 10px 14px; background: var(--bg-card); border: 1px solid var(--border); transition: all 0.3s; }
+        .channel-item:hover { border-color: var(--accent-light); background: var(--bg-hover); }
+        .channel-item-name { font-size: 0.85rem; color: var(--text-primary); min-width: 100px; }
+        .channel-item-input { flex: 1; padding: 6px 10px; border: none; border-bottom: 1px solid var(--border); background: transparent; font-family: 'Noto Serif SC', serif; font-size: 0.8rem; color: var(--text-secondary); outline: none; }
+        .channel-item-input:focus { border-bottom-color: var(--accent); }
+        .channel-item-input::placeholder { color: var(--text-muted); opacity: 0.6; }
+
+        /* ===== 入职指南 ===== */
+        .timeline { position: relative; padding-left: 28px; }
+        .timeline::before { content: ''; position: absolute; left: 6px; top: 8px; bottom: 8px; width: 1px; background: var(--border); }
+        .timeline-item { position: relative; margin-bottom: 28px; padding-left: 20px; }
+        .timeline-item::before { content: ''; position: absolute; left: -24px; top: 6px; width: 9px; height: 9px; background: var(--bg-card); border: 2px solid var(--accent); border-radius: 50%; transition: all 0.3s; }
+        .timeline-item.completed::before { background: var(--stage-done); border-color: var(--stage-done); }
+        .timeline-item.active::before { background: var(--stage-active); border-color: var(--stage-active); box-shadow: 0 0 0 4px rgba(168, 181, 160, 0.2); }
+        .timeline-header { display: flex; align-items: center; gap: 10px; margin-bottom: 10px; }
+        .timeline-phase { font-size: 1rem; font-weight: 600; letter-spacing: 0.05em; }
+        .timeline-badge { padding: 2px 8px; font-size: 0.7rem; letter-spacing: 0.05em; background: rgba(139, 115, 85, 0.1); color: var(--accent); }
+        .timeline-badge.completed { background: rgba(122, 139, 110, 0.15); color: var(--stage-done); }
+        .task-list { list-style: none; }
+        .task-item { display: flex; align-items: flex-start; gap: 8px; padding: 6px 0; font-size: 0.85rem; color: var(--text-secondary); cursor: pointer; transition: all 0.3s; border-bottom: 1px dotted var(--border); }
+        .task-item:last-child { border-bottom: none; }
+        .task-checkbox { width: 14px; height: 14px; border: 1.5px solid var(--border); border-radius: 2px; flex-shrink: 0; margin-top: 4px; display: flex; align-items: center; justify-content: center; transition: all 0.3s; }
+        .task-item.completed .task-checkbox { background: var(--stage-done); border-color: var(--stage-done); }
+        .task-item.completed .task-checkbox::after { content: '✓'; color: #fff; font-size: 0.65rem; }
+        .task-item.completed .task-text { text-decoration: line-through; color: var(--text-muted); }
+        .task-note { font-size: 0.75rem; color: var(--text-muted); margin-top: 2px; }
+
+        /* Modal */
+        .modal-overlay { display: none; position: fixed; top: 0; left: 0; right: 0; bottom: 0; background: rgba(51, 51, 51, 0.4); z-index: 1000; align-items: center; justify-content: center; padding: 24px; }
+        .modal-overlay.active { display: flex; }
+        .modal { background: var(--bg-card); border: 1px solid var(--border); width: 100%; max-width: 560px; max-height: 90vh; overflow-y: auto; position: relative; animation: modalIn 0.3s ease; }
+        @keyframes modalIn { from { opacity: 0; transform: scale(0.96); } to { opacity: 1; transform: scale(1); } }
+        .modal-header { padding: 20px 24px 0; display: flex; justify-content: space-between; align-items: center; }
+        .modal-header h3 { font-size: 1rem; font-weight: 600; letter-spacing: 0.1em; }
+        .modal-close { background: none; border: none; font-size: 1.4rem; color: var(--text-muted); cursor: pointer; line-height: 1; }
+        .modal-close:hover { color: var(--text-primary); }
+        .modal-body { padding: 16px 24px 20px; }
+        .form-group { margin-bottom: 12px; }
+        .form-group label { display: block; font-size: 0.8rem; color: var(--text-secondary); margin-bottom: 4px; letter-spacing: 0.05em; }
+        .form-group input, .form-group select, .form-group textarea { width: 100%; padding: 8px 12px; border: 1px solid var(--border); background: var(--bg-primary); font-family: 'Noto Serif SC', serif; font-size: 0.9rem; color: var(--text-primary); }
+        .form-group input:focus, .form-group select:focus, .form-group textarea:focus { outline: none; border-color: var(--accent-light); }
+        .form-group textarea { resize: vertical; min-height: 60px; }
+        .form-row { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+        .form-row-3 { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 12px; }
+
+        .stage-selector { display: flex; flex-wrap: wrap; gap: 6px; }
+        .stage-option { padding: 5px 12px; border: 1px solid var(--border); background: var(--bg-primary); font-family: 'Noto Serif SC', serif; font-size: 0.8rem; color: var(--text-secondary); cursor: pointer; transition: all 0.3s; }
+        .stage-option:hover { border-color: var(--accent-light); }
+        .stage-option.selected { background: var(--stage-active); border-color: var(--stage-active); color: #fff; }
+
+        .modal-footer { display: flex; gap: 10px; justify-content: flex-end; padding: 0 24px 20px; }
+        .btn { padding: 8px 20px; border: 1px solid var(--border); background: var(--bg-primary); font-family: 'Noto Serif SC', serif; font-size: 0.85rem; cursor: pointer; }
+        .btn:hover { background: var(--bg-hover); }
+        .btn-primary { background: var(--accent); border-color: var(--accent); color: #fff; }
+        .btn-primary:hover { background: var(--accent-light); }
+
+        /* Section Title */
+        .section-title { display: flex; align-items: center; gap: 10px; margin-bottom: 20px; }
+        .section-title h2 { font-size: 1.1rem; font-weight: 600; letter-spacing: 0.08em; }
+        .section-title .line { flex: 1; height: 1px; background: var(--border); }
+
+        .empty-state { text-align: center; padding: 48px 24px; color: var(--text-muted); font-size: 0.9rem; }
+
+        /* ===== 面试进度表（课程式） ===== */
+        .course-progress-header { background: var(--bg-card); border: 1px solid var(--border); padding: 28px; margin-bottom: 24px; text-align: center; }
+        .course-progress-pct { font-size: 3.5rem; font-weight: 700; color: var(--accent); line-height: 1; }
+        .course-progress-pct span { font-size: 1.5rem; font-weight: 400; }
+        .course-progress-bar-wrap { width: 100%; max-width: 400px; margin: 12px auto 0; height: 8px; background: var(--stage-pending); border-radius: 4px; overflow: hidden; }
+        .course-progress-bar-fill { height: 100%; background: var(--stage-done); transition: width 0.5s ease; border-radius: 4px; }
+        .course-progress-sub { font-size: 0.8rem; color: var(--text-muted); margin-top: 8px; letter-spacing: 0.03em; }
+
+        .course-chapter { background: var(--bg-card); border: 1px solid var(--border); margin-bottom: 8px; }
+        .chapter-header { display: flex; align-items: center; gap: 12px; padding: 14px 20px; cursor: pointer; transition: background 0.3s; user-select: none; }
+        .chapter-header:hover { background: var(--bg-hover); }
+        .chapter-toggle { font-size: 0.7rem; color: var(--text-muted); transition: transform 0.3s; width: 16px; text-align: center; }
+        .chapter-toggle.open { transform: rotate(90deg); }
+        .chapter-title { flex: 1; font-size: 0.95rem; font-weight: 600; letter-spacing: 0.05em; }
+        .chapter-badge { padding: 2px 10px; font-size: 0.7rem; background: rgba(122, 139, 110, 0.12); color: var(--stage-done); letter-spacing: 0.03em; }
+
+        .chapter-body { display: none; border-top: 1px solid var(--border); }
+        .chapter-body.open { display: block; animation: fadeIn 0.3s ease; }
+
+        .lesson-item { display: flex; align-items: center; gap: 12px; padding: 12px 20px 12px 48px; border-bottom: 1px dotted var(--border); cursor: pointer; transition: background 0.3s; }
+        .lesson-item:last-child { border-bottom: none; }
+        .lesson-item:hover { background: rgba(245, 240, 230, 0.5); }
+        .lesson-status { width: 22px; height: 22px; border-radius: 50%; border: 2px solid var(--border); display: flex; align-items: center; justify-content: center; flex-shrink: 0; font-size: 0.65rem; transition: all 0.3s; background: var(--bg-primary); }
+        .lesson-item.done .lesson-status { background: var(--stage-done); border-color: var(--stage-done); color: #fff; }
+        .lesson-item.current .lesson-status { border-color: var(--accent); color: var(--accent); }
+        .lesson-name { flex: 1; font-size: 0.85rem; color: var(--text-secondary); }
+        .lesson-item.done .lesson-name { color: var(--text-muted); text-decoration: line-through; }
+        .lesson-item.current .lesson-name { color: var(--text-primary); font-weight: 600; }
+        .lesson-duration { font-size: 0.75rem; color: var(--text-muted); }
+
+        @media (max-width: 768px) {
+            .container { padding: 20px 16px; }
+            .gantt-label-col, .gantt-company-info { width: 140px; }
+            .detail-grid { grid-template-columns: repeat(2, 1fr); }
+            .channel-list { grid-template-columns: 1fr; }
+            .form-row, .form-row-3 { grid-template-columns: 1fr; }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <header class="header">
+            <div class="header-icon">&#9733;</div>
+            <div class="header-title">
+                <h1>求职追踪器</h1>
+                <p>Job Search Tracker</p>
+            </div>
+        </header>
+
+        <nav class="nav-tabs">
+            <button class="nav-tab active" data-view="progress">面试进展表</button>
+            <button class="nav-tab" data-view="course">面试进度表</button>
+            <button class="nav-tab" data-view="channels">求职渠道</button>
+            <button class="nav-tab" data-view="onboarding">入职指南</button>
+        </nav>
+
+        <!-- 面试进展表 -->
+        <div class="view active" id="view-progress">
+            <div class="progress-header">
+                <span class="progress-title">面试进展表</span>
+                <button class="add-btn" onclick="openModal()">+ 添加公司</button>
+            </div>
+
+            <div class="big-stat">
+                <div class="big-stat-number" id="stat-total">0</div>
+                <div class="big-stat-label">投递总数</div>
+            </div>
+
+            <div class="gantt-chart" id="gantt-chart">
+                <div class="gantt-header">
+                    <div class="gantt-label-col">公司 / 岗位</div>
+                    <div class="gantt-stages">
+                        <div class="gantt-stage-label">投递</div>
+                        <div class="gantt-stage-label">筛选</div>
+                        <div class="gantt-stage-label">电面</div>
+                        <div class="gantt-stage-label">面邀</div>
+                        <div class="gantt-stage-label">谈薪</div>
+                        <div class="gantt-stage-label">Offer</div>
+                        <div class="gantt-stage-label">接受</div>
+                    </div>
+                </div>
+                <div id="gantt-rows"></div>
+            </div>
+        </div>
+
+        <!-- 面试进度表（课程式） -->
+        <div class="view" id="view-course">
+            <div class="course-progress-header">
+                <div class="course-progress-pct"><span id="course-pct-num">0</span><span>%</span></div>
+                <div class="course-progress-bar-wrap">
+                    <div class="course-progress-bar-fill" id="course-pct-bar" style="width:0%"></div>
+                </div>
+                <div class="course-progress-sub" id="course-pct-sub">已完成 0 / 0 节</div>
+            </div>
+            <div id="course-chapters"></div>
+        </div>
+
+        <!-- 求职渠道 -->
+        <div class="view" id="view-channels">
+            <div class="section-title">
+                <h2>求职渠道汇总</h2>
+                <div class="line"></div>
+            </div>
+            <div id="channels-container"></div>
+        </div>
+
+        <!-- 入职指南 -->
+        <div class="view" id="view-onboarding">
+            <div class="section-title">
+                <h2>入职旅程</h2>
+                <div class="line"></div>
+            </div>
+            <div class="timeline" id="onboarding-timeline"></div>
+        </div>
+    </div>
+
+    <!-- Modal -->
+    <div class="modal-overlay" id="modal">
+        <div class="modal">
+            <div class="modal-header">
+                <h3 id="modal-title">添加公司</h3>
+                <button class="modal-close" onclick="closeModal()">&times;</button>
+            </div>
+            <div class="modal-body">
+                <input type="hidden" id="company-id">
+                <div class="form-group">
+                    <label>公司名称 *</label>
+                    <input type="text" id="company-name" placeholder="例如：字节跳动">
+                </div>
+                <div class="form-group">
+                    <label>岗位名称 *</label>
+                    <input type="text" id="job-title" placeholder="例如：AI产品经理">
+                </div>
+                <div class="form-row-3">
+                    <div class="form-group">
+                        <label>所属行业</label>
+                        <select id="industry">
+                            <option value="">请选择</option>
+                            <option value="互联网/科技">互联网/科技</option>
+                            <option value="人工智能">人工智能</option>
+                            <option value="金融科技">金融科技</option>
+                            <option value="电子商务">电子商务</option>
+                            <option value="企业服务">企业服务</option>
+                            <option value="教育培训">教育培训</option>
+                            <option value="医疗健康">医疗健康</option>
+                            <option value="新能源">新能源</option>
+                            <option value="制造业">制造业</option>
+                            <option value="消费品">消费品</option>
+                            <option value="文化传媒">文化传媒</option>
+                            <option value="房地产">房地产</option>
+                            <option value="其他">其他</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label>公司规模</label>
+                        <select id="company-size">
+                            <option value="">请选择</option>
+                            <option value="0-50人">0-50人</option>
+                            <option value="50-150人">50-150人</option>
+                            <option value="150-500人">150-500人</option>
+                            <option value="500-2000人">500-2000人</option>
+                            <option value="2000人以上">2000人以上</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label>融资阶段</label>
+                        <select id="funding-stage">
+                            <option value="">请选择</option>
+                            <option value="未融资">未融资</option>
+                            <option value="天使轮">天使轮</option>
+                            <option value="A轮">A轮</option>
+                            <option value="B轮">B轮</option>
+                            <option value="C轮">C轮</option>
+                            <option value="D轮及以上">D轮及以上</option>
+                            <option value="已上市">已上市</option>
+                            <option value="不需要融资">不需要融资</option>
+                        </select>
+                    </div>
+                </div>
+                <div class="form-row">
+                    <div class="form-group">
+                        <label>薪资范围</label>
+                        <input type="text" id="salary" placeholder="例如：30-50K">
+                    </div>
+                    <div class="form-group">
+                        <label>工作地点</label>
+                        <input type="text" id="location" placeholder="例如：北京·海淀">
+                    </div>
+                </div>
+                <div class="form-group">
+                    <label>投递平台</label>
+                    <input type="text" id="platform" placeholder="例如：Boss直聘、拉勾网、官网">
+                </div>
+                <div class="form-group">
+                    <label>当前阶段</label>
+                    <div class="stage-selector" id="stage-selector">
+                        <button class="stage-option" data-stage="0">投递简历</button>
+                        <button class="stage-option" data-stage="1">简历筛选</button>
+                        <button class="stage-option" data-stage="2">电话面试</button>
+                        <button class="stage-option" data-stage="3">现场面试</button>
+                        <button class="stage-option" data-stage="4">谈薪资</button>
+                        <button class="stage-option" data-stage="5">发放Offer</button>
+                        <button class="stage-option" data-stage="6">已接受</button>
+                        <button class="stage-option" data-stage="7">已拒绝</button>
+                    </div>
+                </div>
+                <div style="margin-top: 16px; padding-top: 14px; border-top: 1px solid var(--border);">
+                    <p style="font-size: 0.8rem; color: var(--accent); font-weight: 600; margin-bottom: 10px;">面试准备</p>
+                    <div class="form-group">
+                        <label>面试前准备（自我介绍、可能的问题等）</label>
+                        <textarea id="prep-before" placeholder="记录自我介绍要点、准备的面试问题、对公司的调研..."></textarea>
+                    </div>
+                    <div class="form-group">
+                        <label>面试中准备（应对策略、关注重点）</label>
+                        <textarea id="prep-during" placeholder="记录面试中的应对思路、需要重点展示的能力、提问环节的问题..."></textarea>
+                    </div>
+                    <div class="form-group">
+                        <label>面试后复盘（总结、反思、下一步）</label>
+                        <textarea id="prep-after" placeholder="记录面试表现、回答不足之处、下次改进方向、后续跟进计划..."></textarea>
+                    </div>
+                </div>
+                <div class="form-group">
+                    <label>其他备注</label>
+                    <textarea id="notes" placeholder="记录面试时间、联系人、感受..."></textarea>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button class="btn" onclick="closeModal()">取消</button>
+                <button class="btn btn-primary" onclick="saveCompany()">保存</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // ==================== 数据 ====================
+        const STORAGE_KEY = 'jobTracker_v3';
+        const ONBOARDING_KEY = 'jobTracker_onboarding_v2';
+        const CHANNEL_KEY = 'jobTracker_channels';
+
+        const STAGES = ['投递简历','简历筛选','电话面试','现场面试','谈薪资','发放Offer','已接受','已拒绝'];
+        const STAGE_SHORT = ['投递','筛选','电面','面邀','谈薪','Offer','接受','拒绝'];
+
+        let companies = [];
+
+        function loadData() {
+            const data = localStorage.getItem(STORAGE_KEY);
+            if (data) { companies = JSON.parse(data); return; }
+            // 迁移旧数据
+            for (const key of ['jobTracker_data_v2','jobTracker_data']) {
+                const old = localStorage.getItem(key);
+                if (old) {
+                    companies = JSON.parse(old).map(c => ({
+                        ...c,
+                        industry: c.industry||'', companySize: c.companySize||'', fundingStage: c.fundingStage||'', platform: c.platform||'',
+                        prepBefore: c.prepBefore||'', prepDuring: c.prepDuring||'', prepAfter: c.prepAfter||''
+                    }));
+                    saveData(); localStorage.removeItem(key); return;
+                }
+            }
+            companies = [{
+                id: Date.now(), name: '示例科技', jobTitle: 'AI产品经理',
+                industry: '人工智能', companySize: '2000人以上', fundingStage: '已上市',
+                salary: '35-50K', location: '北京·海淀', platform: 'Boss直聘',
+                stage: 3, notes: '一面通过，等待二面',
+                prepBefore: '1. 自我介绍：3年AI产品经验\n2. 准备问题：大模型应用场景、RAG架构',
+                prepDuring: '重点展示数据驱动决策能力', prepAfter: '技术深度回答不够，需补充RAG学习',
+                date: new Date().toISOString().split('T')[0]
+            }];
+            saveData();
+        }
+        function saveData() { localStorage.setItem(STORAGE_KEY, JSON.stringify(companies)); }
+
+        // ==================== 求职渠道数据（图一内容） ====================
+        const DEFAULT_CHANNELS = [
+            {
+                id: 'ai-product',
+                title: '一、AI产品经理专属平台',
+                icon: '&#9889;',
+                items: [
+                    { name: 'AI产品汇', link: 'https://www.aipm.cn' },
+                    { name: 'PMCAFF产品社区', link: 'https://www.pmcaff.com' },
+                    { name: '人人都是产品经理', link: 'https://www.woshipm.com' }
+                ]
+            },
+            {
+                id: 'mainstream',
+                title: '二、主流综合招聘平台',
+                icon: '&#127970;',
+                items: [
+                    { name: 'BOSS直聘', link: 'https://www.zhipin.com' },
+                    { name: '拉勾网', link: 'https://www.lagou.com' },
+                    { name: '猎聘', link: 'https://www.liepin.com' },
+                    { name: '前程无忧', link: 'https://www.51job.com' },
+                    { name: '智联招聘', link: 'https://www.zhaopin.com' }
+                ]
+            },
+            {
+                id: 'campus',
+                title: '三、校招专属渠道',
+                icon: '&#127891;',
+                items: [
+                    { name: '应届生求职网', link: 'https://www.yingjiesheng.com' },
+                    { name: '牛客网', link: 'https://www.nowcoder.com' },
+                    { name: '实习僧', link: 'https://www.shixiseng.com' }
+                ]
+            },
+            {
+                id: 'social',
+                title: '四、社交与内推渠道',
+                icon: '&#128101;',
+                items: [
+                    { name: '脉脉', link: 'https://maimai.cn' },
+                    { name: 'LinkedIn领英', link: 'https://www.linkedin.com' },
+                    { name: '小红书内推', link: 'https://www.xiaohongshu.com' }
+                ]
+            },
+            {
+                id: 'state',
+                title: '五、央企招聘平台',
+                icon: '&#127963;',
+                items: [
+                    { name: '国聘', link: 'https://www.iguopin.com' },
+                    { name: '国资委官网', link: 'http://www.sasac.gov.cn' },
+                    { name: '中国公共招聘网', link: 'http://job.mohrss.gov.cn' }
+                ]
+            }
+        ];
+
+        let channelData = [];
+        function loadChannels() {
+            const data = localStorage.getItem(CHANNEL_KEY);
+            if (data) channelData = JSON.parse(data);
+            else { channelData = JSON.parse(JSON.stringify(DEFAULT_CHANNELS)); saveChannels(); }
+        }
+        function saveChannels() { localStorage.setItem(CHANNEL_KEY, JSON.stringify(channelData)); }
+
+        // ==================== 面试进度表（课程数据） ====================
+        const COURSE_KEY = 'jobTracker_course';
+
+        const DEFAULT_COURSE = [
+            {
+                title: '第一章 课程导学',
+                lessons: [
+                    { name: '1.1 课程导学：面试通关全攻略', duration: '15分钟', desc: '梳理求职全流程的关键节点：简历投递→筛选→面试→谈薪→Offer。建立系统化的求职思维，避免盲目投递。' },
+                    { name: '1.2 AI产品经理岗位解析与能力模型', duration: '20分钟', desc: '深入理解AI PM与传统PM的差异：需要具备AI技术理解力（LLM/多模态/RAG）、数据驱动决策能力、场景落地经验。了解大厂对AI PM的评级标准。' },
+                    { name: '1.3 求职全流程时间规划', duration: '12分钟', desc: '制定3个月求职作战地图：第1周简历打磨→第2-4周集中投递→第5-8周密集面试→第9-12周谈薪决策。合理分配精力，避免倦怠。' }
+                ]
+            },
+            {
+                title: '第二章 简历与投递',
+                lessons: [
+                    { name: '2.1 AI产品经理简历撰写要点', duration: '18分钟', desc: '突出AI相关经验：大模型项目、AIGC应用、算法协同经历。用数据量化成果（DAU提升x%、模型准确率提升x%）。关键词匹配JD，通过ATS筛选。' },
+                    { name: '2.2 项目经历STAR法则表达', duration: '15分钟', desc: 'Situation（背景）→Task（任务）→Action（行动）→Result（结果）。每个项目控制在3-4句话，突出你在AI产品落地中的核心决策和价值。' },
+                    { name: '2.3 简历筛选机制与优化策略', duration: '12分钟', desc: '了解HR和面试官的筛选逻辑：10秒扫读原则。优化技巧：把最重要的AI项目放在前1/3版面，技能栈与JD关键词对齐，避免大段文字。' },
+                    { name: '2.4 多平台投递策略与时间管理', duration: '10分钟', desc: '建立投递跟踪表，记录每家公司、岗位、投递日期、当前状态。高峰期每天投递5-8家，避免同一天面试安排冲突，留出复盘时间。' }
+                ]
+            },
+            {
+                title: '第三章 面试前准备',
+                lessons: [
+                    { name: '3.1 公司与岗位深度调研方法', duration: '20分钟', desc: '研究目标公司的AI战略方向、核心产品、竞品格局。阅读公司技术博客、产品发布会、财报中的AI投入。了解面试官背景（脉脉/LinkedIn）。' },
+                    { name: '3.2 自我介绍：1分钟/3分钟版本', duration: '18分钟', desc: '1分钟版：我是谁+擅长什么+为什么适合这个岗位。3分钟版：加入1-2个AI项目故事的精简版。避免背诵感，像聊天一样自然表达。' },
+                    { name: '3.3 高频面试问题清单与答题框架', duration: '25分钟', desc: '必问清单：最有成就感的AI项目、如何处理需求冲突、AI产品的核心指标、对AIGC趋势的看法。用PREP法则（观点→理由→例子→重申）组织答案。' },
+                    { name: '3.4 AI产品经理技术知识储备', duration: '22分钟', desc: '必须了解：大模型基本原理（Transformer/预训练/微调）、Prompt Engineering、RAG架构、Agent工作流、模型评估指标（BLEU/ROUGE/人工评分）。不需要写代码，但要懂原理。' },
+                    { name: '3.5 产品sense与数据思维训练', duration: '15分钟', desc: '日常训练：每天用一款AI产品并写300字体验分析。关注AI产品日报/晚点LatePost。数据思维：会用SQL做基础查询，理解A/B测试，熟悉漏斗分析。' },
+                    { name: '3.6 模拟面试与录音复盘', duration: '20分钟', desc: '找朋友或AI工具做模拟面试，录下来回放。检查：口头禅过多、语速过快、逻辑跳跃、答案过长。每次模拟后列出3个改进点。' }
+                ]
+            },
+            {
+                title: '第四章 电话/视频面试',
+                lessons: [
+                    { name: '4.1 电面与视频面试的差异化准备', duration: '15分钟', desc: '电面：声音要有热情，准备纸笔记录问题，环境安静。视频面：背景整洁、光线充足、测试摄像头和麦克风，眼神看摄像头而非屏幕。' },
+                    { name: '4.2 开场白与自我介绍实战', duration: '12分钟', desc: '开场白模板：您好，我是XXX，很高兴参加这次面试。自我介绍控制在90秒内，重点突出与AI产品相关的经历，结尾表达对公司和岗位的兴趣。' },
+                    { name: '4.3 常见电面题型与应对', duration: '20分钟', desc: '高频题型：离职原因（正向表达）、职业规划（3-5年路径）、为什么选择AI产品（热情+能力+趋势）、期望薪资（给区间而非具体数字）。' },
+                    { name: '4.4 反问环节：好问题清单', duration: '10分钟', desc: '必问问题：团队AI产品的核心方向、当前最大的挑战、对候选人的期望。避免问：薪资福利（留到谈薪阶段）、基础信息（网上可查的）。' }
+                ]
+            },
+            {
+                title: '第五章 现场面试',
+                lessons: [
+                    { name: '5.1 现场面试流程与礼仪', duration: '12分钟', desc: '提前15分钟到达，着装商务休闲。携带：简历3份、笔记本、笔。面试中保持微笑和眼神交流，不要打断面试官，回答前先思考2秒。' },
+                    { name: '5.2 产品案例分析题答题技巧', duration: '25分钟', desc: '经典题型：设计一个AI客服产品/优化推荐算法。答题框架：明确问题→用户调研→方案设计→技术可行性→评估指标→迭代计划。画图辅助表达。' },
+                    { name: '5.3 策略题与开放题拆解方法', duration: '22分钟', desc: '如：如何让老年人使用AI产品？用5W2H拆解：Who（目标用户）、What（需求）、Why（痛点）、Where（场景）、When（时机）、How（方案）、How much（成本）。' },
+                    { name: '5.4 行为面试与压力面试应对', duration: '18分钟', desc: '行为面试用STAR法则。压力面试（如连续追问"为什么"）保持冷静，承认不足+改进计划。被质疑时：感谢反馈+解释思路+请教建议。' },
+                    { name: '5.5 白板讨论与群面技巧', duration: '15分钟', desc: '白板讨论：先问清问题边界，画思维导图，分模块讨论。群面：找到合适的角色（时间控制者/记录者/领导者），主动发言但不过度打断他人。' }
+                ]
+            },
+            {
+                title: '第六章 谈薪与Offer',
+                lessons: [
+                    { name: '6.1 薪资构成与市场行情调研', duration: '15分钟', desc: '了解AI PM市场行情：应届15-25K，3年经验25-40K，5年+ 40-70K。薪资构成：基本工资+绩效+股票/期权+签字费+补贴。用脉脉/Offershow查真实薪资。' },
+                    { name: '6.2 谈薪话术与博弈策略', duration: '20分钟', desc: '话术：感谢您认可我的能力，基于我的经验和市场行情，期望薪资是XX-XXK。有多个Offer时：坦诚告知+表达优先级+争取match。不要先出价，让对方先报范围。' },
+                    { name: '6.3 Offer评估维度与决策框架', duration: '15分钟', desc: '评估维度：薪资总包（看3年总收入）、业务方向（AI原生>AI赋能）、团队氛围（直属领导>同事）、成长空间（晋升路径）、工作生活平衡。打分制决策。' },
+                    { name: '6.4 多Offer对比与入职谈判', duration: '12分钟', desc: '制作对比表：横向比较薪资、股权、团队、地点、发展前景。选择最符合长期职业规划的那个，而非只看薪资。确认Offer细节：入职日期、试用期、社保公积金基数。' }
+                ]
+            }
+        ];
+
+        let courseProgress = {};
+
+        function loadCourseData() {
+            const data = localStorage.getItem(COURSE_KEY);
+            if (data) courseProgress = JSON.parse(data);
+            else {
+                courseProgress = {};
+                DEFAULT_COURSE.forEach((ch, ci) => {
+                    ch.lessons.forEach((_, li) => {
+                        courseProgress[`${ci}-${li}`] = false;
+                    });
+                });
+                saveCourseData();
+            }
+        }
+
+        function saveCourseData() { localStorage.setItem(COURSE_KEY, JSON.stringify(courseProgress)); }
+
+        function renderCourse() {
+            let totalLessons = 0;
+            let doneLessons = 0;
+
+            DEFAULT_COURSE.forEach((ch, ci) => {
+                ch.lessons.forEach((_, li) => {
+                    totalLessons++;
+                    if (courseProgress[`${ci}-${li}`]) doneLessons++;
+                });
+            });
+
+            const pct = totalLessons > 0 ? Math.round((doneLessons / totalLessons) * 100) : 0;
+            document.getElementById('course-pct-num').textContent = pct;
+            document.getElementById('course-pct-bar').style.width = pct + '%';
+            document.getElementById('course-pct-sub').textContent = `已完成 ${doneLessons} / ${totalLessons} 节`;
+
+            const container = document.getElementById('course-chapters');
+            container.innerHTML = DEFAULT_COURSE.map((ch, ci) => {
+                let chDone = 0;
+                ch.lessons.forEach((_, li) => { if (courseProgress[`${ci}-${li}`]) chDone++; });
+
+                // 找到当前第一个未完成的lesson
+                let currentLesson = -1;
+                for (let li = 0; li < ch.lessons.length; li++) {
+                    if (!courseProgress[`${ci}-${li}`]) { currentLesson = li; break; }
+                }
+
+                return `
+                    <div class="course-chapter">
+                        <div class="chapter-header" onclick="toggleChapter(this)">
+                            <span class="chapter-toggle">&#9654;</span>
+                            <span class="chapter-title">${ch.title}</span>
+                            <span class="chapter-badge">${chDone}/${ch.lessons.length}</span>
+                        </div>
+                        <div class="chapter-body">
+                            ${ch.lessons.map((lesson, li) => {
+                                const key = `${ci}-${li}`;
+                                const isDone = courseProgress[key];
+                                const isCurrent = li === currentLesson && !isDone;
+                                return `
+                                    <div class="lesson-item ${isDone ? 'done' : ''} ${isCurrent ? 'current' : ''}"
+                                         onclick="toggleLesson('${key}',${ci},${li})">
+                                        <div class="lesson-status">${isDone ? '&#10003;' : isCurrent ? '&#9658;' : ''}</div>
+                                        <div style="flex:1">
+                                            <div class="lesson-name">${escapeHtml(lesson.name)}</div>
+                                            ${lesson.desc ? `<div style="font-size:0.75rem;color:var(--text-muted);margin-top:3px;line-height:1.6;">${escapeHtml(lesson.desc)}</div>` : ''}
+                                        </div>
+                                        <span class="lesson-duration">${lesson.duration}</span>
+                                    </div>
+                                `;
+                            }).join('')}
+                        </div>
+                    </div>
+                `;
+            }).join('');
+        }
+
+        function toggleChapter(header) {
+            const toggle = header.querySelector('.chapter-toggle');
+            const body = header.nextElementSibling;
+            toggle.classList.toggle('open');
+            body.classList.toggle('open');
+        }
+
+        function toggleLesson(key, ci, li) {
+            courseProgress[key] = !courseProgress[key];
+            saveCourseData();
+            renderCourse();
+        }
+
+        // ==================== 入职数据 ====================
+        const ONBOARDING_DATA = [
+            { phase: '入职前准备', badge: '准备期', tasks: [
+                { text: '确认入职日期与报到地点', note: '向HR确认具体时间、楼层、联系人' },
+                { text: '准备入职材料', note: '身份证、学历证明、离职证明、银行卡、证件照' },
+                { text: '了解公司着装要求', note: '询问HR或查看员工手册' },
+                { text: '规划通勤路线', note: '提前踩点，估算通勤时间' },
+                { text: '准备自我介绍', note: '1-2分钟版本，背景+擅长领域+期待' },
+                { text: '整理前公司工作成果', note: '脱敏后的项目文档、数据成果' }
+            ]},
+            { phase: '入职第一天', badge: '报到日', tasks: [
+                { text: '办理入职手续', note: '签署合同、领取工牌、开通账号' },
+                { text: '认识直属领导', note: '主动约brief，了解团队目标和期望' },
+                { text: '认识团队成员', note: '记住名字和职责，加微信/钉钉' },
+                { text: '熟悉办公环境', note: '工位、会议室、茶水间、打印区' },
+                { text: '安装必要软件', note: '开发工具、协作软件、内部系统' },
+                { text: '阅读团队文档', note: '产品文档、技术文档、流程规范' }
+            ]},
+            { phase: '入职第一周', badge: '适应期', tasks: [
+                { text: '参加新员工培训', note: '公司文化、规章制度、产品概览' },
+                { text: '了解产品现状', note: '体验产品、阅读PRD、了解roadmap' },
+                { text: '梳理业务流程', note: '画一张团队工作流图' },
+                { text: '约1对1沟通', note: '与关键协作同事喝咖啡，建立关系' },
+                { text: '完成第一个小任务', note: '主动请缨，快速产出建立信任' },
+                { text: '记录问题清单', note: '不懂的地方记下来统一问' }
+            ]},
+            { phase: '入职第一个月', badge: '融入期', tasks: [
+                { text: '主导一个小项目', note: '从需求分析到上线的完整闭环' },
+                { text: '输出产品体验报告', note: '以新人视角发现产品问题' },
+                { text: '建立用户洞察', note: '旁听用户访谈、阅读反馈、看数据' },
+                { text: '明确OKR/KPI', note: '与领导对齐季度目标' },
+                { text: '参与跨部门会议', note: '了解其他团队工作方式' },
+                { text: '寻求反馈', note: '主动询问领导和同事改进建议' }
+            ]},
+            { phase: '试用期（1-3月）', badge: '证明期', tasks: [
+                { text: '交付核心项目成果', note: '至少完成1个有影响力的项目' },
+                { text: '建立数据思维', note: '熟悉核心指标，能用数据说话' },
+                { text: '优化工作流程', note: '发现低效环节并提出改进' },
+                { text: '沉淀方法论', note: '输出文档、分享会' },
+                { text: '扩展人脉网络', note: '认识其他部门关键同学' },
+                { text: '定期述职准备', note: '按月总结成果' }
+            ]},
+            { phase: '转正前', badge: '冲刺期', tasks: [
+                { text: '准备转正答辩', note: '成果展示、成长总结、未来规划' },
+                { text: '收集360度反馈', note: '向协作同事收集评价' },
+                { text: '与领导确认转正', note: '提前沟通，了解是否有疑虑' },
+                { text: '制定下阶段计划', note: '转正后的目标和发展方向' },
+                { text: '庆祝一下', note: '转正成功，给自己一个小奖励' }
+            ]}
+        ];
+
+        function loadOnboardingData() {
+            const data = localStorage.getItem(ONBOARDING_KEY);
+            if (data) return JSON.parse(data);
+            const initial = {};
+            ONBOARDING_DATA.forEach((phase, pi) => { initial[pi] = phase.tasks.map(() => false); });
+            localStorage.setItem(ONBOARDING_KEY, JSON.stringify(initial));
+            return initial;
+        }
+        let onboardingProgress = loadOnboardingData();
+        function saveOnboardingData() { localStorage.setItem(ONBOARDING_KEY, JSON.stringify(onboardingProgress)); }
+
+        // ==================== 视图切换 ====================
+        document.querySelectorAll('.nav-tab').forEach(tab => {
+            tab.addEventListener('click', () => {
+                document.querySelectorAll('.nav-tab').forEach(t => t.classList.remove('active'));
+                document.querySelectorAll('.view').forEach(v => v.classList.remove('active'));
+                tab.classList.add('active');
+                document.getElementById(`view-${tab.dataset.view}`).classList.add('active');
+            });
+        });
+
+        // ==================== 渲染甘特图 ====================
+        function renderGantt() {
+            document.getElementById('stat-total').textContent = companies.length;
+            const rows = document.getElementById('gantt-rows');
+
+            if (companies.length === 0) {
+                rows.innerHTML = '<div class="empty-state">还没有记录任何求职信息，点击右上角添加</div>';
+                return;
+            }
+
+            rows.innerHTML = companies.map(company => {
+                const stage = company.stage;
+                const isRejected = stage === 7;
+                const progressWidth = ((stage + 1) / STAGES.length) * 100;
+                const barClass = isRejected ? 'rejected' : stage >= 6 ? 'done' : '';
+
+                return `
+                    <div class="gantt-row" data-id="${company.id}">
+                        <div class="gantt-company-info">
+                            <div class="gantt-company-name">${escapeHtml(company.name)}</div>
+                            <div class="gantt-job-title">${escapeHtml(company.jobTitle)}</div>
+                            <div class="gantt-company-meta">${[company.industry,company.companySize,company.location].filter(Boolean).join(' · ')}</div>
+                        </div>
+                        <div class="gantt-bar-area">
+                            ${STAGE_SHORT.map((s,i) => `
+                                <div class="gantt-stage-cell">
+                                    ${i === stage ? `<div class="gantt-current-dot" style="left:50%;"></div>` : ''}
+                                </div>
+                            `).join('')}
+                            <div class="gantt-progress-bar ${barClass}" style="left:0;width:${progressWidth}%;"></div>
+                        </div>
+                        <div class="gantt-actions">
+                            <button class="gantt-action-btn" onclick="toggleDetail(${company.id})" title="详情">&#128463;</button>
+                            <button class="gantt-action-btn" onclick="editCompany(${company.id})" title="编辑">&#9998;</button>
+                            <button class="gantt-action-btn" onclick="deleteCompany(${company.id})" title="删除">&#10005;</button>
+                        </div>
+                    </div>
+                    <div class="company-detail" id="detail-${company.id}">
+                        <div class="detail-grid">
+                            <div class="detail-item"><div class="detail-item-label">薪资</div><div class="detail-item-value">${escapeHtml(company.salary||'—')}</div></div>
+                            <div class="detail-item"><div class="detail-item-label">规模</div><div class="detail-item-value">${escapeHtml(company.companySize||'—')}</div></div>
+                            <div class="detail-item"><div class="detail-item-label">融资</div><div class="detail-item-value">${escapeHtml(company.fundingStage||'—')}</div></div>
+                            <div class="detail-item"><div class="detail-item-label">投递平台</div><div class="detail-item-value">${escapeHtml(company.platform||'—')}</div></div>
+                        </div>
+                        ${company.prepBefore ? `<div class="prep-section"><div class="prep-section-title">面试前准备</div><div class="prep-section-content">${escapeHtml(company.prepBefore)}</div></div>` : ''}
+                        ${company.prepDuring ? `<div class="prep-section"><div class="prep-section-title">面试中准备</div><div class="prep-section-content">${escapeHtml(company.prepDuring)}</div></div>` : ''}
+                        ${company.prepAfter ? `<div class="prep-section"><div class="prep-section-title">面试后复盘</div><div class="prep-section-content">${escapeHtml(company.prepAfter)}</div></div>` : ''}
+                        ${company.notes ? `<div class="prep-section"><div class="prep-section-title">备注</div><div class="prep-section-content">${escapeHtml(company.notes)}</div></div>` : ''}
+                    </div>
+                `;
+            }).join('');
+        }
+
+        function toggleDetail(id) {
+            const detail = document.getElementById(`detail-${id}`);
+            if (detail) detail.classList.toggle('active');
+        }
+
+        // ==================== 渲染求职渠道 ====================
+        function renderChannels() {
+            const container = document.getElementById('channels-container');
+            container.innerHTML = channelData.map((section, si) => `
+                <div class="channel-section">
+                    <div class="channel-header">
+                        <span class="channel-icon">${section.icon}</span>
+                        <span class="channel-title">${section.title}</span>
+                    </div>
+                    <div class="channel-list">
+                        ${section.items.map((item, ii) => `
+                            <div class="channel-item">
+                                <span class="channel-item-name">${escapeHtml(item.name)}</span>
+                                <input type="text" class="channel-item-input"
+                                    value="${escapeHtml(item.link)}"
+                                    placeholder="填写链接或备注..."
+                                    onchange="updateChannelLink(${si},${ii},this.value)">
+                            </div>
+                        `).join('')}
+                    </div>
+                </div>
+            `).join('');
+        }
+
+        function updateChannelLink(sectionIdx, itemIdx, value) {
+            channelData[sectionIdx].items[itemIdx].link = value.trim();
+            saveChannels();
+        }
+
+        // ==================== 渲染入职 ====================
+        function renderOnboarding() {
+            const timeline = document.getElementById('onboarding-timeline');
+            const progress = onboardingProgress;
+            let activePhase = 0;
+            for (let i = 0; i < ONBOARDING_DATA.length; i++) {
+                const allDone = progress[i] && progress[i].every(d => d);
+                if (!allDone) { activePhase = i; break; }
+                activePhase = i + 1;
+            }
+            timeline.innerHTML = ONBOARDING_DATA.map((phase, pi) => {
+                const doneCount = progress[pi] ? progress[pi].filter(d => d).length : 0;
+                const allDone = doneCount === phase.tasks.length;
+                const isActive = pi === activePhase && !allDone;
+                return `
+                    <div class="timeline-item ${allDone ? 'completed' : ''} ${isActive ? 'active' : ''}">
+                        <div class="timeline-header">
+                            <span class="timeline-phase">${phase.phase}</span>
+                            <span class="timeline-badge ${allDone ? 'completed' : ''} ${isActive ? 'active' : ''}">${doneCount}/${phase.tasks.length}</span>
+                        </div>
+                        <ul class="task-list">
+                            ${phase.tasks.map((task, ti) => `
+                                <li class="task-item ${progress[pi] && progress[pi][ti] ? 'completed' : ''}" onclick="toggleTask(${pi},${ti})">
+                                    <div class="task-checkbox"></div>
+                                    <div class="task-text">${escapeHtml(task.text)}${task.note ? `<div class="task-note">${escapeHtml(task.note)}</div>` : ''}</div>
+                                </li>
+                            `).join('')}
+                        </ul>
+                    </div>
+                `;
+            }).join('');
+        }
+
+        function toggleTask(pi, ti) {
+            if (!onboardingProgress[pi]) onboardingProgress[pi] = ONBOARDING_DATA[pi].tasks.map(() => false);
+            onboardingProgress[pi][ti] = !onboardingProgress[pi][ti];
+            saveOnboardingData(); renderOnboarding();
+        }
+
+        // ==================== Modal ====================
+        let editingId = null;
+        function openModal() { editingId = null; resetModal(); document.getElementById('modal-title').textContent = '添加公司'; document.getElementById('modal').classList.add('active'); }
+        function closeModal() { document.getElementById('modal').classList.remove('active'); }
+        function resetModal() {
+            ['company-id','company-name','job-title','industry','company-size','funding-stage','salary','location','platform','prep-before','prep-during','prep-after','notes'].forEach(id => {
+                const el = document.getElementById(id);
+                if (el) el.value = '';
+            });
+            document.querySelectorAll('.stage-option').forEach(opt => opt.classList.remove('selected'));
+        }
+        document.getElementById('modal').addEventListener('click', e => { if (e.target === document.getElementById('modal')) closeModal(); });
+        document.querySelectorAll('.stage-option').forEach(option => {
+            option.addEventListener('click', () => { document.querySelectorAll('.stage-option').forEach(opt => opt.classList.remove('selected')); option.classList.add('selected'); });
+        });
+
+        function saveCompany() {
+            const name = document.getElementById('company-name').value.trim();
+            const jobTitle = document.getElementById('job-title').value.trim();
+            if (!name || !jobTitle) { alert('请填写公司名称和岗位名称'); return; }
+            const data = {
+                name, jobTitle,
+                industry: document.getElementById('industry').value,
+                companySize: document.getElementById('company-size').value,
+                fundingStage: document.getElementById('funding-stage').value,
+                salary: document.getElementById('salary').value.trim(),
+                location: document.getElementById('location').value.trim(),
+                platform: document.getElementById('platform').value.trim(),
+                stage: parseInt(document.querySelector('.stage-option.selected')?.dataset.stage || '0'),
+                prepBefore: document.getElementById('prep-before').value.trim(),
+                prepDuring: document.getElementById('prep-during').value.trim(),
+                prepAfter: document.getElementById('prep-after').value.trim(),
+                notes: document.getElementById('notes').value.trim()
+            };
+            if (editingId) {
+                const idx = companies.findIndex(c => c.id === editingId);
+                if (idx !== -1) companies[idx] = { ...companies[idx], ...data };
+            } else {
+                companies.push({ id: Date.now(), ...data, date: new Date().toISOString().split('T')[0] });
+            }
+            saveData(); renderGantt(); closeModal();
+        }
+
+        function editCompany(id) {
+            const c = companies.find(x => x.id === id);
+            if (!c) return;
+            editingId = id;
+            resetModal();
+            document.getElementById('modal-title').textContent = '编辑公司';
+            document.getElementById('company-id').value = id;
+            document.getElementById('company-name').value = c.name;
+            document.getElementById('job-title').value = c.jobTitle;
+            document.getElementById('industry').value = c.industry || '';
+            document.getElementById('company-size').value = c.companySize || '';
+            document.getElementById('funding-stage').value = c.fundingStage || '';
+            document.getElementById('salary').value = c.salary || '';
+            document.getElementById('location').value = c.location || '';
+            document.getElementById('platform').value = c.platform || '';
+            document.getElementById('prep-before').value = c.prepBefore || '';
+            document.getElementById('prep-during').value = c.prepDuring || '';
+            document.getElementById('prep-after').value = c.prepAfter || '';
+            document.getElementById('notes').value = c.notes || '';
+            document.querySelectorAll('.stage-option').forEach(opt => opt.classList.toggle('selected', parseInt(opt.dataset.stage) === c.stage));
+            document.getElementById('modal').classList.add('active');
+        }
+
+        function deleteCompany(id) {
+            if (!confirm('确定要删除这条记录吗？')) return;
+            companies = companies.filter(c => c.id !== id);
+            saveData(); renderGantt();
+        }
+
+        function escapeHtml(text) { const div = document.createElement('div'); div.textContent = text; return div.innerHTML; }
+
+        // ==================== Init ====================
+        loadData(); loadChannels(); loadCourseData();
+        renderGantt(); renderChannels(); renderCourse(); renderOnboarding();
+    </script>
+</body>
+</html>
