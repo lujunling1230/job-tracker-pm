@@ -159,6 +159,43 @@
         .task-item.completed .task-text { text-decoration: line-through; color: var(--text-muted); }
         .task-note { font-size: 0.75rem; color: var(--text-muted); margin-top: 2px; }
 
+        /* ===== 工作SOP ===== */
+        .sop-toolbar { display: flex; gap: 10px; margin-bottom: 20px; align-items: center; }
+        .sop-search { flex: 1; padding: 8px 14px; border: 1px solid var(--border); background: var(--bg-primary); font-family: 'Noto Sans SC', 'Quicksand', sans-serif; font-size: 0.85rem; color: var(--text-primary); border-radius: 20px; }
+        .sop-search:focus { outline: none; border-color: var(--accent-light); box-shadow: 0 0 0 3px rgba(91,154,111,0.1); }
+        .sop-add-btn { padding: 8px 16px; background: linear-gradient(135deg, var(--accent), var(--accent-light)); border: none; color: #fff; font-family: 'Noto Sans SC', 'Quicksand', sans-serif; font-size: 0.8rem; cursor: pointer; border-radius: 20px; white-space: nowrap; transition: all 0.3s; }
+        .sop-add-btn:hover { transform: translateY(-1px); box-shadow: 0 4px 12px var(--shadow-hover); }
+        .sop-list { display: flex; flex-direction: column; gap: 16px; }
+        .sop-card { background: var(--bg-card); border: 1.5px dashed var(--border); border-radius: 12px; overflow: hidden; transition: all 0.3s; }
+        .sop-card:hover { border-color: var(--accent-light); box-shadow: 0 4px 16px var(--shadow); }
+        .sop-card-header { display: flex; align-items: center; gap: 10px; padding: 16px 20px; cursor: pointer; user-select: none; }
+        .sop-card-icon { width: 32px; height: 32px; background: linear-gradient(135deg, var(--accent-light), var(--accent)); border-radius: 8px; display: flex; align-items: center; justify-content: center; color: #fff; font-size: 0.85rem; font-weight: 700; flex-shrink: 0; }
+        .sop-card-title { font-size: 0.95rem; font-weight: 600; color: var(--text-primary); flex: 1; letter-spacing: 0.03em; }
+        .sop-card-count { font-size: 0.72rem; color: var(--text-muted); padding: 2px 8px; background: rgba(91,154,111,0.08); border-radius: 10px; }
+        .sop-card-arrow { color: var(--text-muted); font-size: 0.8rem; transition: transform 0.3s; }
+        .sop-card.expanded .sop-card-arrow { transform: rotate(180deg); }
+        .sop-card-body { display: none; padding: 0 20px 16px; }
+        .sop-card.expanded .sop-card-body { display: block; animation: sopFadeIn 0.3s ease; }
+        @keyframes sopFadeIn { from { opacity: 0; transform: translateY(-4px); } to { opacity: 1; transform: translateY(0); } }
+        .sop-step { display: flex; gap: 12px; padding: 10px 0; border-bottom: 1px dotted var(--border); }
+        .sop-step:last-child { border-bottom: none; }
+        .sop-step-num { width: 24px; height: 24px; border: 1.5px solid var(--accent); border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 0.72rem; font-weight: 600; color: var(--accent); flex-shrink: 0; }
+        .sop-step-content { flex: 1; }
+        .sop-step-title { font-size: 0.85rem; font-weight: 500; color: var(--text-primary); margin-bottom: 2px; }
+        .sop-step-desc { font-size: 0.78rem; color: var(--text-secondary); line-height: 1.7; }
+        .sop-step-tag { display: inline-block; padding: 1px 8px; font-size: 0.68rem; background: rgba(91,154,111,0.08); color: var(--accent); border-radius: 8px; margin-left: 6px; }
+        .sop-card-actions { display: flex; gap: 6px; }
+        .sop-action-btn { padding: 3px 10px; font-size: 0.72rem; border: 1px solid var(--border); background: var(--bg-primary); color: var(--text-secondary); cursor: pointer; border-radius: 12px; transition: all 0.2s; font-family: inherit; }
+        .sop-action-btn:hover { border-color: var(--accent-light); color: var(--accent); }
+        .sop-action-btn.danger:hover { border-color: var(--bookmark-red); color: var(--bookmark-red); }
+        .sop-empty { text-align: center; padding: 48px 24px; color: var(--text-muted); font-size: 0.9rem; }
+        @media (max-width: 768px) {
+            .sop-toolbar { flex-direction: column; }
+            .sop-add-btn { width: 100%; }
+            .sop-card-header { padding: 12px 14px; }
+            .sop-card-body { padding: 0 14px 12px; }
+        }
+
         /* Modal */
         .modal-overlay { display: none; position: fixed; top: 0; left: 0; right: 0; bottom: 0; background: rgba(61, 90, 62, 0.3); z-index: 1000; align-items: center; justify-content: center; padding: 24px; backdrop-filter: blur(2px); }
         .modal-overlay.active { display: flex; }
@@ -505,6 +542,7 @@
             <button class="nav-tab" data-view="course">面试进度表</button>
             <button class="nav-tab" data-view="channels">求职渠道</button>
             <button class="nav-tab" data-view="onboarding">入职指南</button>
+            <button class="nav-tab" data-view="sop">工作SOP</button>
         </nav>
 
         <!-- 面试进展表（数据概览仪表盘） -->
@@ -767,6 +805,19 @@
                 <div class="line"></div>
             </div>
             <div class="timeline" id="onboarding-timeline"></div>
+        </div>
+
+        <!-- 工作SOP -->
+        <div class="view" id="view-sop">
+            <div class="section-title">
+                <h2>工作 SOP</h2>
+                <div class="line"></div>
+            </div>
+            <div class="sop-toolbar">
+                <input type="text" class="sop-search" id="sop-search" placeholder="搜索 SOP..." oninput="filterSOP()">
+                <button class="sop-add-btn" onclick="addSOPCategory()">+ 新建分类</button>
+            </div>
+            <div class="sop-list" id="sop-list"></div>
         </div>
     </div>
 
@@ -1313,6 +1364,238 @@
         let onboardingProgress = loadOnboardingData();
         function saveOnboardingData() { localStorage.setItem(ONBOARDING_KEY, JSON.stringify(onboardingProgress)); }
 
+        // ==================== 工作SOP ====================
+        const SOP_KEY = 'jobTracker_sop_v1';
+        const DEFAULT_SOP_DATA = [
+            {
+                id: 'sop_req',
+                title: '需求分析 SOP',
+                icon: '需',
+                steps: [
+                    { title: '收集需求来源', desc: '从用户反馈、业务方诉求、数据洞察、竞品分析四个渠道汇总原始需求，记录在需求池中', tag: '输入' },
+                    { title: '需求澄清与过滤', desc: '与需求方沟通确认背景、目标用户、预期效果，过滤掉伪需求和技术不可行的需求', tag: '筛选' },
+                    { title: '需求优先级排序', desc: '使用 RICE 模型（Reach × Impact × Confidence / Effort）对需求打分，结合战略对齐度排序', tag: '决策' },
+                    { title: '输出需求文档', desc: '撰写 PRD，包含背景、目标、用户故事、功能详述、交互流程、验收标准、非功能需求', tag: '产出' },
+                    { title: '需求评审', desc: '组织设计、开发、测试、业务方参与评审，收集反馈并迭代文档，确认后冻结需求', tag: '对齐' }
+                ]
+            },
+            {
+                id: 'sop_prd',
+                title: 'PRD 撰写 SOP',
+                icon: '文',
+                steps: [
+                    { title: '明确文档版本与读者', desc: '在文档头部标注版本号、作者、日期、目标读者（开发/设计/测试/业务）', tag: '规范' },
+                    { title: '撰写背景与目标', desc: '用 3-5 句话说明为什么要做、解决什么问题、成功指标是什么（可量化的北极星指标）', tag: '背景' },
+                    { title: '用户故事与场景', desc: '以「作为XX用户，我希望XX，以便XX」格式描述，覆盖主要用户路径和边界场景', tag: '场景' },
+                    { title: '功能详述', desc: '逐项描述功能点：输入、处理逻辑、输出、异常处理、权限控制、数据流转', tag: '核心' },
+                    { title: '交互流程图', desc: '用流程图或状态机描述主流程、异常流程、回退路径，标注关键判断节点', tag: '流程' },
+                    { title: '验收标准', desc: '为每个功能点定义可测试的验收条件，包括功能验收、性能验收、兼容性验收', tag: '标准' },
+                    { title: '非功能需求', desc: '补充性能要求（QPS/延迟）、安全要求、埋点需求、兼容性范围、降级方案', tag: '补充' }
+                ]
+            },
+            {
+                id: 'sop_project',
+                title: '项目排期与跟进 SOP',
+                icon: '项',
+                steps: [
+                    { title: '任务拆解', desc: '将需求拆解为可独立交付的任务，每个任务工作量不超过 3 人日，标注依赖关系', tag: '拆解' },
+                    { title: '估算与排期', desc: '与开发逐项确认工作量，留出 20% buffer，排出里程碑节点和提测/上线日期', tag: '排期' },
+                    { title: '每日站会', desc: '15分钟同步：昨天做了什么、今天做什么、有什么阻塞，问题会后解决不占用全员时间', tag: '日常' },
+                    { title: '风险识别与升级', desc: '每周梳理风险清单（技术风险/资源风险/依赖风险），高风险项及时升级到Leader', tag: '风控' },
+                    { title: '进度可视化', desc: '维护项目看板（待办/进行中/待验收/已完成），所有相关方可实时查看进度', tag: '透明' },
+                    { title: '变更管理', desc: '需求变更需评估影响范围，更新排期并通知所有干系人，记录变更日志', tag: '变更' }
+                ]
+            },
+            {
+                id: 'sop_data',
+                title: '数据分析与实验 SOP',
+                icon: '数',
+                steps: [
+                    { title: '定义核心指标', desc: '明确北极星指标和拆解指标（如 DAU = 新增 + 留存 + 召回），确保指标定义全员一致', tag: '指标' },
+                    { title: '埋点设计', desc: '根据分析需求设计埋点方案：事件名、触发时机、上报参数、用户属性，输出埋点文档', tag: '采集' },
+                    { title: '数据看板搭建', desc: '搭建日常监控看板（核心指标趋势、漏斗转化、分群对比），设置异常告警阈值', tag: '监控' },
+                    { title: '实验设计', desc: '确定实验假设、实验变量、分流比例、观察周期、显著性水平，输出实验方案文档', tag: '实验' },
+                    { title: '实验分析与结论', desc: '对比实验组与对照组指标差异，关注统计显著性和实际显著性，输出结论和下一步建议', tag: '分析' },
+                    { title: '数据复盘', desc: '每周/月做数据复盘：指标变化原因、归因分析、策略调整建议，沉淀为知识库', tag: '复盘' }
+                ]
+            },
+            {
+                id: 'sop_launch',
+                title: '上线发布 SOP',
+                icon: '发',
+                steps: [
+                    { title: '发布前检查清单', desc: '确认：测试报告通过、埋点验证、性能达标、回滚方案就绪、客服话术更新、公告准备', tag: '检查' },
+                    { title: '灰度策略', desc: '按 1% → 5% → 20% → 50% → 100% 逐步放量，每步观察核心指标和错误率，异常立即回滚', tag: '灰度' },
+                    { title: '上线监控', desc: '发布后前2小时密切监控：错误率、API延迟、核心转化率、用户反馈，准备应急响应', tag: '监控' },
+                    { title: '回滚预案', desc: '提前确认回滚条件（如错误率>1%）、回滚操作步骤、责任人，确保5分钟内可执行', tag: '预案' },
+                    { title: '发布通告', desc: '向相关团队发送发布通告：功能说明、影响范围、注意事项、联系方式', tag: '通知' },
+                    { title: '上线后复盘', desc: '上线3天后做数据复盘：是否达到预期指标、用户反馈如何、有哪些改进点', tag: '复盘' }
+                ]
+            },
+            {
+                id: 'sop_research',
+                title: '用户调研 SOP',
+                icon: '研',
+                steps: [
+                    { title: '明确调研目标', desc: '用一句话描述「我想了解什么」，拆解为 3-5 个具体研究问题，避免大而泛', tag: '目标' },
+                    { title: '选择调研方法', desc: '定量（问卷/A/B测试/数据挖掘）或定性（深度访谈/焦点小组/可用性测试），根据目标选择', tag: '方法' },
+                    { title: '招募用户', desc: '定义目标用户画像和招募条件，通过问卷筛选或渠道定向邀约，确保样本代表性', tag: '招募' },
+                    { title: '执行调研', desc: '准备访谈提纲/问卷，注意引导不诱导，录音录像需获用户同意，实时记录关键洞察', tag: '执行' },
+                    { title: '分析与产出', desc: '整理调研记录，提取关键洞察，输出调研报告（发现/结论/建议），附原始素材', tag: '产出' },
+                    { title: '洞察落地', desc: '将调研结论转化为产品需求或策略调整，追踪落地效果，形成「调研→行动→验证」闭环', tag: '落地' }
+                ]
+            },
+            {
+                id: 'sop_compete',
+                title: '竞品分析 SOP',
+                icon: '竞',
+                steps: [
+                    { title: '确定分析目的', desc: '明确分析用途：功能对标/策略借鉴/市场定位/技术趋势，不同目的决定分析深度', tag: '目的' },
+                    { title: '选择竞品范围', desc: '直接竞品（同赛道）+ 间接竞品（替代方案）+ 跨界参考（创新玩法），控制在 5 个以内', tag: '选品' },
+                    { title: '多维度对比', desc: '从产品功能、用户体验、商业模式、运营策略、技术实现、数据表现六个维度展开', tag: '对比' },
+                    { title: '深度体验', desc: '以真实用户身份完整体验竞品核心流程，截图记录关键页面，标注亮点和问题', tag: '体验' },
+                    { title: '输出分析报告', desc: '结构：竞品概览 → 对比矩阵 → 差异化分析 → 机会点 → 建议行动，附截图和数据支撑', tag: '报告' },
+                    { title: '持续跟踪', desc: '建立竞品动态跟踪机制（版本更新/融资/人事变动），定期更新分析报告', tag: '跟踪' }
+                ]
+            },
+            {
+                id: 'sop_collab',
+                title: '跨部门协作 SOP',
+                icon: '协',
+                steps: [
+                    { title: '识别干系人', desc: '项目启动时梳理所有干系人：决策者、执行者、协作者、知会者，明确各自角色和诉求', tag: '识别' },
+                    { title: '建立沟通机制', desc: '确定沟通渠道（群/邮件/会议）、频率（日/周/里程碑）、模板（周报/纪要/决策记录）', tag: '机制' },
+                    { title: '会议管理', desc: '会前发议程，会中控时记录，会后24小时内发纪要，纪要包含结论、待办、责任人、截止日', tag: '会议' },
+                    { title: '文档协作规范', desc: '统一文档平台和命名规范（项目名_文档类型_版本号），设置权限，定期归档旧版本', tag: '规范' },
+                    { title: '冲突处理', desc: '冲突时回归用户价值和数据说话，避免立场对立；无法达成共识时升级到共同上级决策', tag: '冲突' },
+                    { title: '协作复盘', desc: '项目结束后做协作复盘：哪些协作顺畅、哪些有摩擦、如何改进，沉淀团队最佳实践', tag: '复盘' }
+                ]
+            }
+        ];
+
+        function loadSOPData() {
+            const data = localStorage.getItem(SOP_KEY);
+            if (data) {
+                try { return JSON.parse(data); } catch(e) {}
+            }
+            return JSON.parse(JSON.stringify(DEFAULT_SOP_DATA));
+        }
+        let sopData = loadSOPData();
+        let sopExpanded = {};
+        function saveSOPData() { localStorage.setItem(SOP_KEY, JSON.stringify(sopData)); }
+
+        function renderSOP() {
+            const list = document.getElementById('sop-list');
+            if (!list) return;
+            const keyword = (document.getElementById('sop-search')?.value || '').toLowerCase().trim();
+            let filtered = sopData;
+            if (keyword) {
+                filtered = sopData.map(cat => {
+                    const matchCat = cat.title.toLowerCase().includes(keyword);
+                    const matchSteps = cat.steps.filter(s =>
+                        s.title.toLowerCase().includes(keyword) || s.desc.toLowerCase().includes(keyword)
+                    );
+                    if (matchCat || matchSteps.length > 0) {
+                        return { ...cat, steps: matchCat ? cat.steps : matchSteps };
+                    }
+                    return null;
+                }).filter(Boolean);
+            }
+            if (filtered.length === 0) {
+                list.innerHTML = '<div class="sop-empty">未找到匹配的 SOP，试试其他关键词</div>';
+                return;
+            }
+            list.innerHTML = filtered.map(cat => {
+                const isExpanded = sopExpanded[cat.id];
+                return `
+                    <div class="sop-card ${isExpanded ? 'expanded' : ''}" id="sop-card-${cat.id}">
+                        <div class="sop-card-header" onclick="toggleSOP('${cat.id}')">
+                            <div class="sop-card-icon">${escapeHtml(cat.icon || cat.title.charAt(0))}</div>
+                            <div class="sop-card-title">${escapeHtml(cat.title)}</div>
+                            <span class="sop-card-count">${cat.steps.length} 步</span>
+                            <span class="sop-card-arrow">&#9662;</span>
+                        </div>
+                        <div class="sop-card-body">
+                            ${cat.steps.map((step, si) => `
+                                <div class="sop-step">
+                                    <div class="sop-step-num">${si + 1}</div>
+                                    <div class="sop-step-content">
+                                        <div class="sop-step-title">${escapeHtml(step.title)}${step.tag ? `<span class="sop-step-tag">${escapeHtml(step.tag)}</span>` : ''}</div>
+                                        <div class="sop-step-desc">${escapeHtml(step.desc)}</div>
+                                    </div>
+                                </div>
+                            `).join('')}
+                            <div style="margin-top: 12px; display: flex; gap: 6px;">
+                                <button class="sop-action-btn" onclick="event.stopPropagation(); editSOPCategory('${cat.id}')">编辑</button>
+                                <button class="sop-action-btn" onclick="event.stopPropagation(); exportSOP('${cat.id}')">导出</button>
+                                <button class="sop-action-btn danger" onclick="event.stopPropagation(); deleteSOPCategory('${cat.id}')">删除</button>
+                            </div>
+                        </div>
+                    </div>
+                `;
+            }).join('');
+        }
+
+        function toggleSOP(id) {
+            sopExpanded[id] = !sopExpanded[id];
+            const card = document.getElementById(`sop-card-${id}`);
+            if (card) card.classList.toggle('expanded');
+        }
+
+        function filterSOP() { renderSOP(); }
+
+        function addSOPCategory() {
+            const title = prompt('请输入 SOP 分类名称：');
+            if (!title || !title.trim()) return;
+            const id = 'sop_' + Date.now();
+            sopData.push({
+                id, title: title.trim(), icon: title.trim().charAt(0),
+                steps: [{ title: '步骤 1', desc: '请编辑步骤描述', tag: '' }]
+            });
+            sopExpanded[id] = true;
+            saveSOPData(); renderSOP();
+        }
+
+        function editSOPCategory(id) {
+            const cat = sopData.find(c => c.id === id);
+            if (!cat) return;
+            const newTitle = prompt('分类名称：', cat.title);
+            if (!newTitle) return;
+            cat.title = newTitle.trim();
+            cat.icon = newTitle.trim().charAt(0);
+            const stepsText = prompt('编辑步骤（每行一个步骤，格式：标题 | 描述 | 标签）\n留空保持不变：',
+                cat.steps.map(s => `${s.title} | ${s.desc} | ${s.tag || ''}`).join('\n'));
+            if (stepsText && stepsText.trim()) {
+                cat.steps = stepsText.split('\n').filter(l => l.trim()).map(line => {
+                    const parts = line.split('|').map(p => p.trim());
+                    return { title: parts[0] || '', desc: parts[1] || '', tag: parts[2] || '' };
+                });
+            }
+            saveSOPData(); renderSOP();
+        }
+
+        function deleteSOPCategory(id) {
+            if (!confirm('确定删除此 SOP 分类？')) return;
+            sopData = sopData.filter(c => c.id !== id);
+            delete sopExpanded[id];
+            saveSOPData(); renderSOP();
+        }
+
+        function exportSOP(id) {
+            const cat = sopData.find(c => c.id === id);
+            if (!cat) return;
+            let text = `# ${cat.title}\n\n`;
+            cat.steps.forEach((s, i) => {
+                text += `## ${i + 1}. ${s.title}${s.tag ? ` [${s.tag}]` : ''}\n${s.desc}\n\n`;
+            });
+            const blob = new Blob([text], { type: 'text/markdown;charset=utf-8' });
+            const a = document.createElement('a');
+            a.href = URL.createObjectURL(blob);
+            a.download = `${cat.title}.md`;
+            document.body.appendChild(a); a.click(); document.body.removeChild(a);
+            URL.revokeObjectURL(a.href);
+        }
+
         // ==================== 时间筛选与数据统计 ====================
         function setTimeFilter(filter) {
             currentTimeFilter = filter;
@@ -1663,6 +1946,7 @@
                 if (d.onboarding) { onboardingProgress = d.onboarding; saveOnboardingData(); }
                 if (d.planLogs) { planLogs = d.planLogs; savePlanLogs(); }
                 if (d.aiSettings) { aiSettings = d.aiSettings; saveAISettings(); }
+                if (d.sopData) { sopData = d.sopData; saveSOPData(); }
                 renderAll();
             }
         }
@@ -1671,7 +1955,7 @@
             if (!session) return;
             const appData = JSON.stringify({
                 companies, channels, courseSteps, planData,
-                onboarding: onboardingProgress, planLogs, aiSettings,
+                onboarding: onboardingProgress, planLogs, aiSettings, sopData,
                 version: Date.now()
             });
             await supabaseClient.from('user_profiles').upsert({
@@ -2677,7 +2961,7 @@
 
         // ===== 覆盖原有 renderAll 以包含新功能 =====
         function renderAll() {
-            renderGantt(); renderChannels(); renderCourse(); renderOnboarding(); renderPlan(); refreshAIStats();
+            renderGantt(); renderChannels(); renderCourse(); renderOnboarding(); renderSOP(); renderPlan(); refreshAIStats();
         }
 
         // ===== 初始化 =====
@@ -2709,6 +2993,9 @@
 
             const origSaveAISettings = saveAISettings;
             saveAISettings = function() { origSaveAISettings(); if (currentUser) syncToCloud(); };
+
+            const origSaveSOPData = saveSOPData;
+            saveSOPData = function() { origSaveSOPData(); if (currentUser) syncToCloud(); };
         });
     </script>
 </body>
