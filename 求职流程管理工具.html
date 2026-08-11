@@ -415,6 +415,26 @@
         .auth-modal .auth-error { font-size: 0.75rem; color: var(--bookmark-red); text-align: center; margin-top: 8px; min-height: 18px; }
         .auth-modal .auth-close { position: absolute; top: 12px; right: 16px; background: none; border: none; font-size: 1.2rem; color: var(--text-muted); cursor: pointer; }
 
+        /* Phone Auth */
+        .auth-tabs { display: flex; gap: 0; margin-bottom: 20px; border-bottom: 1px solid var(--border); }
+        .auth-tab { flex: 1; text-align: center; padding: 8px 0; font-size: 0.85rem; color: var(--text-muted); cursor: pointer; position: relative; transition: color 0.3s; letter-spacing: 0.05em; }
+        .auth-tab:hover { color: var(--text-secondary); }
+        .auth-tab.active { color: var(--accent); font-weight: 600; }
+        .auth-tab.active::after { content: ''; position: absolute; bottom: -1px; left: 20%; right: 20%; height: 2px; background: linear-gradient(90deg, var(--accent), var(--accent-light)); border-radius: 2px; }
+        .phone-input-wrap { display: flex; align-items: center; border: 1px solid var(--border); background: var(--bg-primary); border-radius: 8px; overflow: hidden; }
+        .phone-input-wrap:focus-within { border-color: var(--accent); box-shadow: 0 0 0 3px rgba(91,154,111,0.1); }
+        .phone-prefix { padding: 8px 10px; font-size: 0.85rem; color: var(--text-secondary); background: var(--bg-hover); border-right: 1px solid var(--border); white-space: nowrap; font-weight: 500; }
+        .phone-input-wrap input { border: none !important; background: transparent !important; box-shadow: none !important; }
+        .phone-input-wrap input:focus { box-shadow: none !important; }
+        .code-input-wrap { display: flex; gap: 8px; align-items: center; }
+        .code-input-wrap input { flex: 1; }
+        .send-code-btn { padding: 8px 14px; background: var(--bg-hover); border: 1px solid var(--border); font-family: 'Noto Sans SC', 'Quicksand', sans-serif; font-size: 0.78rem; color: var(--accent); cursor: pointer; transition: all 0.3s; white-space: nowrap; border-radius: 8px; }
+        .send-code-btn:hover:not(:disabled) { border-color: var(--accent); background: var(--accent); color: #fff; }
+        .send-code-btn:disabled { opacity: 0.5; cursor: not-allowed; }
+        .auth-toast { position: fixed; top: 24px; left: 50%; transform: translateX(-50%) translateY(-100px); background: rgba(61,90,62,0.95); color: #fff; padding: 12px 24px; border-radius: 12px; font-size: 0.85rem; z-index: 200; opacity: 0; transition: all 0.4s ease; backdrop-filter: blur(8px); box-shadow: 0 4px 20px rgba(0,0,0,0.15); max-width: 90vw; text-align: center; }
+        .auth-toast.show { transform: translateX(-50%) translateY(0); opacity: 1; }
+        .auth-toast .toast-code { font-size: 1.3rem; font-weight: 700; letter-spacing: 0.15em; color: #A8D5A8; margin-top: 4px; display: block; }
+
         /* ===== AI 助手 ===== */
         .ai-layout { display: grid; grid-template-columns: 1fr 360px; gap: 20px; }
         @media (max-width: 900px) { .ai-layout { grid-template-columns: 1fr; } }
@@ -1864,7 +1884,29 @@
             `).join('');
         }
 
-        // ===== Auth Modal =====
+        // ===== 手机号认证系统 =====
+        // --- 本地存储辅助 ---
+        function getPhoneUsers() { return JSON.parse(localStorage.getItem('phone_users') || '[]'); }
+        function savePhoneUsers(users) { localStorage.setItem('phone_users', JSON.stringify(users)); }
+        function getCurrentLocalUser() { return JSON.parse(localStorage.getItem('current_phone_user') || 'null'); }
+        function setCurrentLocalUser(user) {
+            if (user) localStorage.setItem('current_phone_user', JSON.stringify(user));
+            else localStorage.removeItem('current_phone_user');
+        }
+        async function hashPassword(password) {
+            const encoder = new TextEncoder();
+            const data = encoder.encode(password + 'jt_salt_2026');
+            const hash = await crypto.subtle.digest('SHA-256', data);
+            return Array.from(new Uint8Array(hash)).map(b => b.toString(16).padStart(2, '0')).join('');
+        }
+        function showAuthToast(message, code) {
+            const toast = document.getElementById('auth-toast');
+            toast.innerHTML = code ? message + '<span class="toast-code">' + code + '</span>' : message;
+            toast.classList.add('show');
+            setTimeout(() => toast.classList.remove('show'), 5000);
+        }
+
+        // --- 弹窗控制 ---
         function openAuthModal(mode) {
             document.getElementById('auth-modal-mode').value = mode;
             document.getElementById('auth-modal-title').textContent = mode === 'login' ? '登录账号' : '注册账号';
@@ -1873,56 +1915,139 @@
                 ? '还没有账号？<span>立即注册</span>'
                 : '已有账号？<span>立即登录</span>';
             document.getElementById('auth-error').textContent = '';
-            document.getElementById('auth-modal').classList.add('active');
-            document.getElementById('auth-email').value = '';
+            document.getElementById('auth-phone').value = '';
             document.getElementById('auth-password').value = '';
+            document.getElementById('auth-code').value = '';
+            document.getElementById('auth-verify-code').value = '';
+            if (verifyCodeCountdown) { clearInterval(verifyCodeCountdown); verifyCodeCountdown = null; }
+            const btn = document.getElementById('send-code-btn');
+            if (btn) { btn.disabled = false; btn.textContent = '获取验证码'; }
+
+            if (mode === 'register') {
+                document.getElementById('auth-code-group').style.display = 'block';
+                document.getElementById('auth-password-group').style.display = 'block';
+                document.getElementById('auth-tabs').style.display = 'none';
+            } else {
+                document.getElementById('auth-tabs').style.display = 'flex';
+                switchLoginMethod(document.getElementById('auth-login-method').value || 'password');
+            }
+            document.getElementById('auth-modal').classList.add('active');
         }
         function closeAuthModal() { document.getElementById('auth-modal').classList.remove('active'); }
         function switchAuthMode() {
             const current = document.getElementById('auth-modal-mode').value;
             openAuthModal(current === 'login' ? 'register' : 'login');
         }
-        async function handleAuthSubmit() {
-            const mode = document.getElementById('auth-modal-mode').value;
-            const email = document.getElementById('auth-email').value.trim();
-            const password = document.getElementById('auth-password').value;
+        function switchLoginMethod(method) {
+            document.getElementById('auth-login-method').value = method;
+            document.querySelectorAll('.auth-tab').forEach(tab => {
+                tab.classList.toggle('active', tab.dataset.method === method);
+            });
+            document.getElementById('auth-code-group').style.display = method === 'code' ? 'block' : 'none';
+            document.getElementById('auth-password-group').style.display = method === 'password' ? 'block' : 'none';
+        }
+
+        // --- 验证码 ---
+        let verifyCodeCountdown = null;
+        function sendVerifyCode() {
+            const phone = document.getElementById('auth-phone').value.trim();
             const errEl = document.getElementById('auth-error');
             errEl.textContent = '';
-            if (!email || !password) { errEl.textContent = '请填写邮箱和密码'; return; }
-
-            if (!supabaseClient) {
-                errEl.innerHTML = '云端同步尚未配置。<br>请先用「本地模式」体验，所有数据保存在浏览器中。';
+            if (!phone || !/^1[3-9]\d{9}$/.test(phone)) {
+                errEl.textContent = '请输入有效的11位手机号';
                 return;
             }
-
-            try {
-                const { data, error } = mode === 'login'
-                    ? await supabaseClient.auth.signInWithPassword({ email, password })
-                    : await supabaseClient.auth.signUp({ email, password });
-
-                if (error) { errEl.textContent = error.message; return; }
-
-                if (mode === 'register') {
-                    if (data.session) { updateAuthUI(data.user); closeAuthModal(); }
-                    else { errEl.textContent = '注册成功！请检查邮箱完成验证。'; }
-                } else {
-                    updateAuthUI(data.user); closeAuthModal(); await syncFromCloud();
+            const code = String(Math.floor(100000 + Math.random() * 900000));
+            document.getElementById('auth-verify-code').value = code;
+            showAuthToast('验证码已发送（演示模式）', code);
+            const btn = document.getElementById('send-code-btn');
+            let seconds = 60;
+            btn.disabled = true;
+            btn.textContent = seconds + '秒后重发';
+            if (verifyCodeCountdown) clearInterval(verifyCodeCountdown);
+            verifyCodeCountdown = setInterval(() => {
+                seconds--;
+                btn.textContent = seconds + '秒后重发';
+                if (seconds <= 0) {
+                    clearInterval(verifyCodeCountdown);
+                    verifyCodeCountdown = null;
+                    btn.disabled = false;
+                    btn.textContent = '获取验证码';
                 }
-            } catch (e) {
-                errEl.textContent = '请求失败: ' + (e.message || '未知错误');
-            }
+            }, 1000);
         }
-        async function handleLogout() {
-            await supabaseClient.auth.signOut();
+
+        // --- 注册/登录 ---
+        async function handleAuthSubmit() {
+            const mode = document.getElementById('auth-modal-mode').value;
+            const loginMethod = document.getElementById('auth-login-method').value;
+            const phone = document.getElementById('auth-phone').value.trim();
+            const password = document.getElementById('auth-password').value;
+            const code = document.getElementById('auth-code').value.trim();
+            const verifyCode = document.getElementById('auth-verify-code').value;
+            const errEl = document.getElementById('auth-error');
+            errEl.textContent = '';
+            if (!phone || !/^1[3-9]\d{9}$/.test(phone)) {
+                errEl.textContent = '请输入有效的11位手机号';
+                return;
+            }
+            const users = getPhoneUsers();
+
+            if (mode === 'register') {
+                if (!verifyCode) { errEl.textContent = '请先获取验证码'; return; }
+                if (code !== verifyCode) { errEl.textContent = '验证码不正确'; return; }
+                if (!password || password.length < 6) { errEl.textContent = '密码至少6位'; return; }
+                if (users.find(u => u.phone === phone)) { errEl.textContent = '该手机号已注册'; return; }
+                const passwordHash = await hashPassword(password);
+                users.push({ phone, passwordHash, createdAt: Date.now() });
+                savePhoneUsers(users);
+                const userObj = { phone, loginTime: Date.now() };
+                setCurrentLocalUser(userObj);
+                updateAuthUI(userObj);
+                closeAuthModal();
+                showAuthToast('注册成功，已自动登录');
+            } else {
+                if (loginMethod === 'password') {
+                    if (!password) { errEl.textContent = '请输入密码'; return; }
+                    const user = users.find(u => u.phone === phone);
+                    if (!user) { errEl.textContent = '该手机号未注册'; return; }
+                    const passwordHash = await hashPassword(password);
+                    if (passwordHash !== user.passwordHash) { errEl.textContent = '密码不正确'; return; }
+                    const userObj = { phone, loginTime: Date.now() };
+                    setCurrentLocalUser(userObj);
+                    updateAuthUI(userObj);
+                    closeAuthModal();
+                    showAuthToast('登录成功');
+                } else {
+                    if (!verifyCode) { errEl.textContent = '请先获取验证码'; return; }
+                    if (code !== verifyCode) { errEl.textContent = '验证码不正确'; return; }
+                    if (!users.find(u => u.phone === phone)) {
+                        users.push({ phone, passwordHash: '', createdAt: Date.now() });
+                        savePhoneUsers(users);
+                    }
+                    const userObj = { phone, loginTime: Date.now() };
+                    setCurrentLocalUser(userObj);
+                    updateAuthUI(userObj);
+                    closeAuthModal();
+                    showAuthToast('登录成功');
+                }
+            }
+            if (supabaseClient) { try { await syncFromCloud(); } catch(e) {} }
+        }
+        function handleLogout() {
+            setCurrentLocalUser(null);
+            if (supabaseClient) { try { supabaseClient.auth.signOut(); } catch(e) {} }
             updateAuthUI(null);
+            showAuthToast('已退出登录');
         }
         function updateAuthUI(user) {
             const section = document.getElementById('auth-section');
             if (user) {
+                const name = user.phone || user.email || 'U';
                 section.innerHTML = `
                     <div class="auth-user-info">
-                        <div class="auth-avatar">${(user.email || 'U')[0].toUpperCase()}</div>
-                        <span class="auth-email">${user.email}</span>
+                        <div class="auth-avatar">${name.charAt(0)}</div>
+                        <span class="auth-email">${name}</span>
                         <button class="auth-btn" onclick="handleLogout()">登出</button>
                     </div>`;
                 currentUser = user;
@@ -1933,37 +2058,44 @@
                 currentUser = null;
             }
         }
+        // --- 云端同步（Supabase 可达时生效）---
         async function syncFromCloud() {
-            const { data: { session } } = await supabaseClient.auth.getSession();
-            if (!session) return;
-            const { data: profile } = await supabaseClient.from('user_profiles').select('*').eq('id', session.user.id).single();
-            if (profile?.app_data) {
-                const d = JSON.parse(profile.app_data);
-                if (d.companies) { companies = d.companies; saveData(); }
-                if (d.channels) { channels = d.channels; saveChannels(); }
-                if (d.courseSteps) { courseSteps = d.courseSteps; saveCourseData(); }
-                if (d.planData) { planData = d.planData; savePlanData(); }
-                if (d.onboarding) { onboardingProgress = d.onboarding; saveOnboardingData(); }
-                if (d.planLogs) { planLogs = d.planLogs; savePlanLogs(); }
-                if (d.aiSettings) { aiSettings = d.aiSettings; saveAISettings(); }
-                if (d.sopData) { sopData = d.sopData; saveSOPData(); }
-                renderAll();
-            }
+            if (!supabaseClient) return;
+            try {
+                const { data: { session } } = await supabaseClient.auth.getSession();
+                if (!session) return;
+                const { data: profile } = await supabaseClient.from('user_profiles').select('*').eq('id', session.user.id).single();
+                if (profile?.app_data) {
+                    const d = JSON.parse(profile.app_data);
+                    if (d.companies) { companies = d.companies; saveData(); }
+                    if (d.channels) { channels = d.channels; saveChannels(); }
+                    if (d.courseSteps) { courseSteps = d.courseSteps; saveCourseData(); }
+                    if (d.planData) { planData = d.planData; savePlanData(); }
+                    if (d.onboarding) { onboardingProgress = d.onboarding; saveOnboardingData(); }
+                    if (d.planLogs) { planLogs = d.planLogs; savePlanLogs(); }
+                    if (d.aiSettings) { aiSettings = d.aiSettings; saveAISettings(); }
+                    if (d.sopData) { sopData = d.sopData; saveSOPData(); }
+                    renderAll();
+                }
+            } catch(e) { console.log('Cloud sync skipped:', e.message); }
         }
         async function syncToCloud() {
-            const { data: { session } } = await supabaseClient.auth.getSession();
-            if (!session) return;
-            const appData = JSON.stringify({
-                companies, channels, courseSteps, planData,
-                onboarding: onboardingProgress, planLogs, aiSettings, sopData,
-                version: Date.now()
-            });
-            await supabaseClient.from('user_profiles').upsert({
-                id: session.user.id,
-                display_name: session.user.email,
-                app_data: appData,
-                updated_at: new Date().toISOString()
-            });
+            if (!supabaseClient) return;
+            try {
+                const { data: { session } } = await supabaseClient.auth.getSession();
+                if (!session) return;
+                const appData = JSON.stringify({
+                    companies, channels, courseSteps, planData,
+                    onboarding: onboardingProgress, planLogs, aiSettings, sopData,
+                    version: Date.now()
+                });
+                await supabaseClient.from('user_profiles').upsert({
+                    id: session.user.id,
+                    display_name: session.user.email,
+                    app_data: appData,
+                    updated_at: new Date().toISOString()
+                });
+            } catch(e) { console.log('Cloud sync skipped:', e.message); }
         }
 
         function updateChannelLink(sectionIdx, itemIdx, value) {
@@ -2397,13 +2529,44 @@
             <button class="auth-close" onclick="closeAuthModal()">&times;</button>
             <div class="auth-modal-title" id="auth-modal-title">登录账号</div>
             <input type="hidden" id="auth-modal-mode" value="login">
-            <div class="form-group"><label>邮箱</label><input type="email" id="auth-email" placeholder="your@email.com"></div>
-            <div class="form-group"><label>密码</label><input type="password" id="auth-password" placeholder="输入密码"></div>
+            <input type="hidden" id="auth-verify-code" value="">
+            <input type="hidden" id="auth-login-method" value="password">
+
+            <!-- 登录方式切换 -->
+            <div class="auth-tabs" id="auth-tabs">
+                <div class="auth-tab active" data-method="password" onclick="switchLoginMethod('password')">密码登录</div>
+                <div class="auth-tab" data-method="code" onclick="switchLoginMethod('code')">验证码登录</div>
+            </div>
+
+            <div class="form-group">
+                <label>手机号</label>
+                <div class="phone-input-wrap">
+                    <span class="phone-prefix">+86</span>
+                    <input type="tel" id="auth-phone" placeholder="请输入手机号" maxlength="11" oninput="this.value=this.value.replace(/[^0-9]/g,'')">
+                </div>
+            </div>
+
+            <div class="form-group" id="auth-code-group" style="display:none;">
+                <label>验证码</label>
+                <div class="code-input-wrap">
+                    <input type="text" id="auth-code" placeholder="请输入验证码" maxlength="6" oninput="this.value=this.value.replace(/[^0-9]/g,'')">
+                    <button class="send-code-btn" id="send-code-btn" onclick="sendVerifyCode()">获取验证码</button>
+                </div>
+            </div>
+
+            <div class="form-group" id="auth-password-group">
+                <label>密码</label>
+                <input type="password" id="auth-password" placeholder="输入密码">
+            </div>
+
             <div class="auth-error" id="auth-error"></div>
             <button class="auth-submit" id="auth-submit-btn" onclick="handleAuthSubmit()">登录</button>
             <div class="auth-switch" id="auth-switch-text" onclick="switchAuthMode()">还没有账号？<span>立即注册</span></div>
         </div>
     </div>
+
+    <!-- Auth Toast -->
+    <div class="auth-toast" id="auth-toast"></div>
 
     <!-- Offer / Accept / Reject 弹窗 -->
     <div class="offer-dialog" id="offer-dialog" onclick="closeOfferDialog()">
@@ -2436,13 +2599,17 @@
             if (SUPABASE_URL !== 'https://your-project.supabase.co') {
                 supabaseClient = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
                 supabaseClient.auth.getSession().then(({ data: { session } }) => {
-                    if (session?.user) updateAuthUI(session.user);
-                });
+                    if (session?.user && !getCurrentLocalUser()) updateAuthUI(session.user);
+                }).catch(() => {});
                 supabaseClient.auth.onAuthStateChange((_event, session) => {
-                    updateAuthUI(session?.user || null);
+                    if (!getCurrentLocalUser()) updateAuthUI(session?.user || null);
                 });
             }
         } catch (e) { console.log('Supabase 未配置，使用本地模式'); }
+
+        // 页面加载时恢复本地登录状态
+        const savedLocalUser = getCurrentLocalUser();
+        if (savedLocalUser) updateAuthUI(savedLocalUser);
 
         // ===== AI 文件上传处理 =====
         let aiAttachedFiles = []; // { name, type, content(text或base64), isImage }
