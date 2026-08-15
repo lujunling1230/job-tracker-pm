@@ -196,6 +196,67 @@
             .sop-card-body { padding: 0 14px 12px; }
         }
 
+        /* ===== 需求池 / 流程机器人 ===== */
+        .pipeline-toolbar { display: flex; gap: 10px; margin-bottom: 20px; align-items: center; flex-wrap: wrap; }
+        .pipeline-search { flex: 1; min-width: 200px; padding: 8px 14px; border: 1px solid var(--border); background: var(--bg-primary); font-family: 'Noto Sans SC', 'Quicksand', sans-serif; font-size: 0.85rem; color: var(--text-primary); border-radius: 20px; }
+        .pipeline-search:focus { outline: none; border-color: var(--accent-light); box-shadow: 0 0 0 3px rgba(91,154,111,0.1); }
+        .pipeline-filter { display: flex; gap: 6px; }
+        .pipeline-filter-btn { padding: 5px 14px; border: 1px solid var(--border); background: var(--bg-primary); font-family: inherit; font-size: 0.78rem; color: var(--text-secondary); cursor: pointer; border-radius: 16px; transition: all 0.25s; }
+        .pipeline-filter-btn:hover { border-color: var(--accent-light); color: var(--accent); }
+        .pipeline-filter-btn.active { background: linear-gradient(135deg, var(--accent), var(--accent-light)); color: #fff; border-color: transparent; }
+        .pipeline-add-btn { padding: 8px 18px; background: linear-gradient(135deg, var(--accent), var(--accent-light)); border: none; color: #fff; font-family: 'Noto Sans SC', 'Quicksand', sans-serif; font-size: 0.8rem; cursor: pointer; border-radius: 20px; white-space: nowrap; transition: all 0.3s; }
+        .pipeline-add-btn:hover { transform: translateY(-1px); box-shadow: 0 4px 12px var(--shadow-hover); }
+
+        .pipeline-stats { display: flex; gap: 12px; margin-bottom: 20px; flex-wrap: wrap; }
+        .pipeline-stat { flex: 1; min-width: 120px; padding: 14px 16px; background: var(--bg-card); border: 1.5px dashed var(--border); border-radius: 10px; text-align: center; }
+        .pipeline-stat-num { font-size: 1.6rem; font-weight: 700; color: var(--accent); line-height: 1.2; }
+        .pipeline-stat-label { font-size: 0.75rem; color: var(--text-muted); margin-top: 4px; letter-spacing: 0.03em; }
+
+        .pipeline-board { display: flex; gap: 12px; overflow-x: auto; padding-bottom: 12px; min-height: 400px; }
+        .pipeline-column { flex: 0 0 240px; background: var(--bg-card); border: 1.5px dashed var(--border); border-radius: 12px; display: flex; flex-direction: column; max-height: 600px; transition: all 0.3s; }
+        .pipeline-column.drag-over { border-color: var(--accent); border-style: solid; box-shadow: 0 0 0 3px rgba(91,154,111,0.12); }
+        .pipeline-col-header { padding: 12px 14px; border-bottom: 1px solid var(--border); display: flex; align-items: center; gap: 8px; }
+        .pipeline-col-icon { width: 26px; height: 26px; border-radius: 6px; display: flex; align-items: center; justify-content: center; color: #fff; font-size: 0.72rem; font-weight: 700; flex-shrink: 0; }
+        .pipeline-col-name { font-size: 0.85rem; font-weight: 600; color: var(--text-primary); flex: 1; letter-spacing: 0.03em; }
+        .pipeline-col-count { font-size: 0.72rem; color: var(--text-muted); padding: 2px 8px; background: rgba(91,154,111,0.08); border-radius: 10px; }
+        .pipeline-col-body { flex: 1; overflow-y: auto; padding: 8px; display: flex; flex-direction: column; gap: 8px; }
+        .pipeline-col-body::-webkit-scrollbar { width: 4px; }
+        .pipeline-col-body::-webkit-scrollbar-thumb { background: var(--border); border-radius: 2px; }
+
+        .req-card { background: var(--bg-primary); border: 1px solid var(--border); border-radius: 8px; padding: 10px 12px; cursor: grab; transition: all 0.25s; position: relative; }
+        .req-card:hover { border-color: var(--accent-light); box-shadow: 0 2px 8px var(--shadow); transform: translateY(-1px); }
+        .req-card.dragging { opacity: 0.5; cursor: grabbing; }
+        .req-card-top { display: flex; align-items: center; gap: 6px; margin-bottom: 6px; }
+        .req-priority { font-size: 0.66rem; font-weight: 700; padding: 1px 6px; border-radius: 4px; letter-spacing: 0.02em; }
+        .req-priority.p0 { background: rgba(224,122,109,0.15); color: var(--bookmark-red); }
+        .req-priority.p1 { background: rgba(230,184,125,0.15); color: var(--bookmark-amber); }
+        .req-priority.p2 { background: rgba(91,154,111,0.15); color: var(--accent); }
+        .req-priority.p3 { background: rgba(139,168,141,0.15); color: var(--text-muted); }
+        .req-source { font-size: 0.66rem; color: var(--text-muted); padding: 1px 6px; background: rgba(139,168,141,0.1); border-radius: 4px; }
+        .req-title { font-size: 0.85rem; font-weight: 500; color: var(--text-primary); line-height: 1.5; margin-bottom: 4px; }
+        .req-desc { font-size: 0.76rem; color: var(--text-secondary); line-height: 1.6; margin-bottom: 6px; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; }
+        .req-meta { display: flex; align-items: center; gap: 8px; font-size: 0.7rem; color: var(--text-muted); }
+        .req-meta-item { display: flex; align-items: center; gap: 3px; }
+        .req-actions { display: flex; gap: 4px; margin-top: 8px; padding-top: 6px; border-top: 1px dotted var(--border); }
+        .req-action-btn { padding: 2px 8px; font-size: 0.68rem; border: 1px solid var(--border); background: var(--bg-card); color: var(--text-secondary); cursor: pointer; border-radius: 10px; transition: all 0.2s; font-family: inherit; }
+        .req-action-btn:hover { border-color: var(--accent-light); color: var(--accent); }
+        .req-action-btn.danger:hover { border-color: var(--bookmark-red); color: var(--bookmark-red); }
+        .req-action-btn.ai { border-color: var(--accent); color: var(--accent); }
+        .req-empty-col { text-align: center; padding: 24px 12px; color: var(--text-muted); font-size: 0.78rem; }
+
+        .req-detail-panel { display: none; margin-top: 8px; padding: 10px; background: var(--bg-hover); border-radius: 6px; font-size: 0.78rem; }
+        .req-detail-panel.show { display: block; animation: sopFadeIn 0.3s ease; }
+        .req-detail-row { display: flex; gap: 6px; margin-bottom: 4px; }
+        .req-detail-label { color: var(--text-muted); min-width: 60px; font-size: 0.72rem; }
+        .req-detail-value { color: var(--text-primary); flex: 1; font-size: 0.76rem; }
+        .req-ai-analysis { margin-top: 8px; padding: 10px; background: rgba(91,154,111,0.05); border: 1px dashed var(--accent-light); border-radius: 6px; font-size: 0.76rem; color: var(--text-secondary); line-height: 1.7; white-space: pre-wrap; }
+
+        @media (max-width: 768px) {
+            .pipeline-toolbar { flex-direction: column; }
+            .pipeline-search, .pipeline-add-btn { width: 100%; }
+            .pipeline-column { flex: 0 0 200px; }
+        }
+
         /* Modal */
         .modal-overlay { display: none; position: fixed; top: 0; left: 0; right: 0; bottom: 0; background: rgba(61, 90, 62, 0.3); z-index: 1000; align-items: center; justify-content: center; padding: 24px; backdrop-filter: blur(2px); }
         .modal-overlay.active { display: flex; }
@@ -563,6 +624,7 @@
             <button class="nav-tab" data-view="channels">求职渠道</button>
             <button class="nav-tab" data-view="onboarding">入职指南</button>
             <button class="nav-tab" data-view="sop">工作SOP</button>
+            <button class="nav-tab" data-view="pipeline">需求池</button>
         </nav>
 
         <!-- 面试进展表（数据概览仪表盘） -->
@@ -839,6 +901,27 @@
             </div>
             <div class="sop-list" id="sop-list"></div>
         </div>
+
+        <!-- 需求池 / 流程机器人 -->
+        <div class="view" id="view-pipeline">
+            <div class="section-title">
+                <h2>需求池 · 流程机器人</h2>
+                <div class="line"></div>
+            </div>
+            <div class="pipeline-toolbar">
+                <input type="text" class="pipeline-search" id="pipeline-search" placeholder="搜索需求..." oninput="renderPipeline()">
+                <div class="pipeline-filter">
+                    <button class="pipeline-filter-btn active" data-pfilter="all" onclick="setPipelineFilter('all')">全部</button>
+                    <button class="pipeline-filter-btn" data-pfilter="p0" onclick="setPipelineFilter('p0')">P0</button>
+                    <button class="pipeline-filter-btn" data-pfilter="p1" onclick="setPipelineFilter('p1')">P1</button>
+                    <button class="pipeline-filter-btn" data-pfilter="p2" onclick="setPipelineFilter('p2')">P2</button>
+                    <button class="pipeline-filter-btn" data-pfilter="p3" onclick="setPipelineFilter('p3')">P3</button>
+                </div>
+                <button class="pipeline-add-btn" onclick="openReqModal()">+ 新增需求</button>
+            </div>
+            <div class="pipeline-stats" id="pipeline-stats"></div>
+            <div class="pipeline-board" id="pipeline-board"></div>
+        </div>
     </div>
 
     <!-- Modal -->
@@ -954,6 +1037,71 @@
             <div class="modal-footer">
                 <button class="btn" onclick="closeModal()">取消</button>
                 <button class="btn btn-primary" onclick="saveCompany()">保存</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- 需求池 Modal -->
+    <div class="modal-overlay" id="req-modal">
+        <div class="modal">
+            <div class="modal-header">
+                <h3 id="req-modal-title">新增需求</h3>
+                <button class="modal-close" onclick="closeReqModal()">&times;</button>
+            </div>
+            <div class="modal-body">
+                <input type="hidden" id="req-id">
+                <div class="form-group">
+                    <label>需求标题 *</label>
+                    <input type="text" id="req-title" placeholder="例如：AI面试官智能追问功能">
+                </div>
+                <div class="form-group">
+                    <label>需求描述</label>
+                    <textarea id="req-desc" placeholder="描述需求背景、目标用户、预期效果..." style="min-height:80px;"></textarea>
+                </div>
+                <div class="form-row">
+                    <div class="form-group">
+                        <label>优先级</label>
+                        <select id="req-priority">
+                            <option value="p0">P0 - 紧急</option>
+                            <option value="p1">P1 - 高</option>
+                            <option value="p2" selected>P2 - 中</option>
+                            <option value="p3">P3 - 低</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label>需求来源</label>
+                        <select id="req-source">
+                            <option value="用户反馈">用户反馈</option>
+                            <option value="业务方">业务方</option>
+                            <option value="数据洞察">数据洞察</option>
+                            <option value="竞品分析">竞品分析</option>
+                            <option value="技术驱动">技术驱动</option>
+                            <option value="战略规划">战略规划</option>
+                        </select>
+                    </div>
+                </div>
+                <div class="form-row">
+                    <div class="form-group">
+                        <label>负责人</label>
+                        <input type="text" id="req-owner" placeholder="需求负责人">
+                    </div>
+                    <div class="form-group">
+                        <label>预期上线</label>
+                        <input type="date" id="req-deadline">
+                    </div>
+                </div>
+                <div class="form-group">
+                    <label>验收标准</label>
+                    <textarea id="req-acceptance" placeholder="功能验收条件、性能指标、用户体验标准..." style="min-height:60px;"></textarea>
+                </div>
+                <div class="form-group">
+                    <label>备注</label>
+                    <textarea id="req-notes" placeholder="依赖关系、风险点、关联文档链接..." style="min-height:50px;"></textarea>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button class="btn" onclick="closeReqModal()">取消</button>
+                <button class="btn btn-primary" onclick="saveRequirement()">保存</button>
             </div>
         </div>
     </div>
@@ -1905,6 +2053,7 @@
             toast.classList.add('show');
             setTimeout(() => toast.classList.remove('show'), 5000);
         }
+        function showToast(msg) { showAuthToast(msg); }
 
         // --- 弹窗控制 ---
         function openAuthModal(mode) {
@@ -2075,6 +2224,7 @@
                     if (d.planLogs) { planLogs = d.planLogs; savePlanLogs(); }
                     if (d.aiSettings) { aiSettings = d.aiSettings; saveAISettings(); }
                     if (d.sopData) { sopData = d.sopData; saveSOPData(); }
+                    if (d.pipelineData) { pipelineData = d.pipelineData; savePipelineData(); }
                     renderAll();
                 }
             } catch(e) { console.log('Cloud sync skipped:', e.message); }
@@ -2086,7 +2236,7 @@
                 if (!session) return;
                 const appData = JSON.stringify({
                     companies, channels, courseSteps, planData,
-                    onboarding: onboardingProgress, planLogs, aiSettings, sopData,
+                    onboarding: onboardingProgress, planLogs, aiSettings, sopData, pipelineData,
                     version: Date.now()
                 });
                 await supabaseClient.from('user_profiles').upsert({
@@ -3126,14 +3276,284 @@
             trendEl.innerHTML = `本周投递 <strong>${thisWeek}</strong> 家${change !== 0 ? `（较上周 <span style="color:${change > 0 ? 'var(--stage-done)' : 'var(--bookmark-red)'}">${change > 0 ? '+' : ''}${change}%</span>）` : ''}`;
         }
 
+        // ==================== 需求池 / 流程机器人 ====================
+        const PIPELINE_KEY = 'jobTracker_pipeline_v1';
+        const PIPELINE_STAGES = [
+            { id: 0, name: '需求接入', icon: '接', color: '#7CB87C' },
+            { id: 1, name: '需求分析', icon: '析', color: '#5B9A6F' },
+            { id: 2, name: '产品设计', icon: '设', color: '#A8D5A8' },
+            { id: 3, name: '开发上线', icon: '发', color: '#E6B87D' },
+            { id: 4, name: '数据分析', icon: '数', color: '#B8846A' }
+        ];
+        const PRIORITY_LABELS = { p0: 'P0', p1: 'P1', p2: 'P2', p3: 'P3' };
+
+        let pipelineData = [];
+        let pipelineFilter = 'all';
+
+        function loadPipelineData() {
+            const data = localStorage.getItem(PIPELINE_KEY);
+            if (data) { pipelineData = JSON.parse(data); }
+        }
+        function savePipelineData() { localStorage.setItem(PIPELINE_KEY, JSON.stringify(pipelineData)); }
+
+        function renderPipeline() {
+            const board = document.getElementById('pipeline-board');
+            if (!board) return;
+            const searchTerm = (document.getElementById('pipeline-search')?.value || '').toLowerCase();
+
+            let filtered = pipelineData;
+            if (pipelineFilter !== 'all') filtered = filtered.filter(r => r.priority === pipelineFilter);
+            if (searchTerm) filtered = filtered.filter(r => r.title.toLowerCase().includes(searchTerm) || (r.desc || '').toLowerCase().includes(searchTerm));
+
+            renderPipelineStats(filtered);
+
+            board.innerHTML = PIPELINE_STAGES.map(stage => {
+                const items = filtered.filter(r => r.stage === stage.id);
+                const iconStyle = `background:${stage.color};`;
+                return `
+                    <div class="pipeline-column" data-stage="${stage.id}"
+                         ondragover="onPipelineDragOver(event)" ondragleave="onPipelineDragLeave(event)" ondrop="onPipelineDrop(event)">
+                        <div class="pipeline-col-header">
+                            <div class="pipeline-col-icon" style="${iconStyle}">${stage.icon}</div>
+                            <div class="pipeline-col-name">${stage.name}</div>
+                            <div class="pipeline-col-count">${items.length}</div>
+                        </div>
+                        <div class="pipeline-col-body">
+                            ${items.length === 0 ? '<div class="req-empty-col">暂无需求</div>' :
+                                items.map(r => renderReqCard(r, stage)).join('')}
+                        </div>
+                    </div>
+                `;
+            }).join('');
+        }
+
+        function renderReqCard(r, stage) {
+            const canAdvance = stage.id < PIPELINE_STAGES.length - 1;
+            const canRetreat = stage.id > 0;
+            let advanceBtn = canAdvance ? `<button class="req-action-btn" onclick="moveRequirement(${r.id}, ${stage.id + 1})" title="推进到下一阶段">&#8594;</button>` : '';
+            let retreatBtn = canRetreat ? `<button class="req-action-btn" onclick="moveRequirement(${r.id}, ${stage.id - 1})" title="退回上一阶段">&#8592;</button>` : '';
+            let detailId = `req-detail-${r.id}`;
+            return `
+                <div class="req-card" draggable="true" data-id="${r.id}"
+                     ondragstart="onPipelineDragStart(event, ${r.id})" ondragend="onPipelineDragEnd(event)">
+                    <div class="req-card-top">
+                        <span class="req-priority ${r.priority}">${PRIORITY_LABELS[r.priority] || 'P2'}</span>
+                        <span class="req-source">${escapeHtml(r.source || '—')}</span>
+                    </div>
+                    <div class="req-title">${escapeHtml(r.title)}</div>
+                    ${r.desc ? `<div class="req-desc">${escapeHtml(r.desc)}</div>` : ''}
+                    <div class="req-meta">
+                        ${r.owner ? `<span class="req-meta-item">&#128100; ${escapeHtml(r.owner)}</span>` : ''}
+                        ${r.deadline ? `<span class="req-meta-item">&#128197; ${escapeHtml(r.deadline)}</span>` : ''}
+                    </div>
+                    <div class="req-actions">
+                        ${retreatBtn}
+                        ${advanceBtn}
+                        <button class="req-action-btn" onclick="toggleReqDetail(${r.id})" title="详情">&#128463;</button>
+                        <button class="req-action-btn" onclick="editRequirement(${r.id})" title="编辑">&#9998;</button>
+                        <button class="req-action-btn ai" onclick="analyzeRequirement(${r.id})" title="AI分析">AI</button>
+                        <button class="req-action-btn danger" onclick="deleteRequirement(${r.id})" title="删除">&#10005;</button>
+                    </div>
+                    <div class="req-detail-panel" id="${detailId}">
+                        ${r.acceptance ? `<div class="req-detail-row"><span class="req-detail-label">验收标准</span><span class="req-detail-value">${escapeHtml(r.acceptance)}</span></div>` : ''}
+                        ${r.notes ? `<div class="req-detail-row"><span class="req-detail-label">备注</span><span class="req-detail-value">${escapeHtml(r.notes)}</span></div>` : ''}
+                        <div class="req-detail-row"><span class="req-detail-label">创建时间</span><span class="req-detail-value">${escapeHtml(r.createdAt || '—')}</span></div>
+                        ${r.aiAnalysis ? `<div class="req-ai-analysis"><strong>AI 分析：</strong>\n${escapeHtml(r.aiAnalysis)}</div>` : ''}
+                    </div>
+                </div>
+            `;
+        }
+
+        function renderPipelineStats(filtered) {
+            const statsEl = document.getElementById('pipeline-stats');
+            if (!statsEl) return;
+            const total = filtered.length;
+            const p0 = filtered.filter(r => r.priority === 'p0').length;
+            const p1 = filtered.filter(r => r.priority === 'p1').length;
+            const analyzing = filtered.filter(r => r.stage === 1).length;
+            const launched = filtered.filter(r => r.stage === 3).length;
+            const done = filtered.filter(r => r.stage === 4).length;
+            statsEl.innerHTML = `
+                <div class="pipeline-stat"><div class="pipeline-stat-num">${total}</div><div class="pipeline-stat-label">需求总数</div></div>
+                <div class="pipeline-stat"><div class="pipeline-stat-num" style="color:var(--bookmark-red);">${p0}</div><div class="pipeline-stat-label">P0 紧急</div></div>
+                <div class="pipeline-stat"><div class="pipeline-stat-num" style="color:var(--bookmark-amber);">${p1}</div><div class="pipeline-stat-label">P1 高优</div></div>
+                <div class="pipeline-stat"><div class="pipeline-stat-num" style="color:var(--accent-dark);">${analyzing}</div><div class="pipeline-stat-label">分析中</div></div>
+                <div class="pipeline-stat"><div class="pipeline-stat-num" style="color:var(--brown-light);">${launched}</div><div class="pipeline-stat-label">开发上线</div></div>
+                <div class="pipeline-stat"><div class="pipeline-stat-num" style="color:var(--stage-done);">${done}</div><div class="pipeline-stat-label">数据分析</div></div>
+            `;
+        }
+
+        function setPipelineFilter(filter) {
+            pipelineFilter = filter;
+            document.querySelectorAll('.pipeline-filter-btn').forEach(btn => {
+                btn.classList.toggle('active', btn.dataset.pfilter === filter);
+            });
+            renderPipeline();
+        }
+
+        function toggleReqDetail(id) {
+            const panel = document.getElementById(`req-detail-${id}`);
+            if (panel) panel.classList.toggle('show');
+        }
+
+        function moveRequirement(id, newStage) {
+            const req = pipelineData.find(r => r.id === id);
+            if (!req) return;
+            req.stage = newStage;
+            req.updatedAt = new Date().toLocaleString('zh-CN');
+            savePipelineData(); renderPipeline();
+        }
+
+        // ---- Drag & Drop ----
+        let draggedReqId = null;
+        function onPipelineDragStart(event, id) {
+            draggedReqId = id;
+            event.target.classList.add('dragging');
+            event.dataTransfer.effectAllowed = 'move';
+        }
+        function onPipelineDragEnd(event) {
+            event.target.classList.remove('dragging');
+            document.querySelectorAll('.pipeline-column').forEach(c => c.classList.remove('drag-over'));
+        }
+        function onPipelineDragOver(event) {
+            event.preventDefault();
+            event.dataTransfer.dropEffect = 'move';
+            const col = event.currentTarget;
+            col.classList.add('drag-over');
+        }
+        function onPipelineDragLeave(event) {
+            event.currentTarget.classList.remove('drag-over');
+        }
+        function onPipelineDrop(event) {
+            event.preventDefault();
+            const col = event.currentTarget;
+            col.classList.remove('drag-over');
+            const newStage = parseInt(col.dataset.stage);
+            if (draggedReqId !== null) {
+                moveRequirement(draggedReqId, newStage);
+                draggedReqId = null;
+            }
+        }
+
+        // ---- Modal ----
+        function openReqModal(id) {
+            const modal = document.getElementById('req-modal');
+            const titleEl = document.getElementById('req-modal-title');
+            if (id) {
+                const req = pipelineData.find(r => r.id === id);
+                if (!req) return;
+                titleEl.textContent = '编辑需求';
+                document.getElementById('req-id').value = req.id;
+                document.getElementById('req-title').value = req.title || '';
+                document.getElementById('req-desc').value = req.desc || '';
+                document.getElementById('req-priority').value = req.priority || 'p2';
+                document.getElementById('req-source').value = req.source || '用户反馈';
+                document.getElementById('req-owner').value = req.owner || '';
+                document.getElementById('req-deadline').value = req.deadline || '';
+                document.getElementById('req-acceptance').value = req.acceptance || '';
+                document.getElementById('req-notes').value = req.notes || '';
+            } else {
+                titleEl.textContent = '新增需求';
+                ['req-id','req-title','req-desc','req-owner','req-deadline','req-acceptance','req-notes'].forEach(id => document.getElementById(id).value = '');
+                document.getElementById('req-priority').value = 'p2';
+                document.getElementById('req-source').value = '用户反馈';
+            }
+            modal.classList.add('active');
+        }
+        function closeReqModal() { document.getElementById('req-modal').classList.remove('active'); }
+
+        function saveRequirement() {
+            const title = document.getElementById('req-title').value.trim();
+            if (!title) { showToast('请输入需求标题'); return; }
+            const id = document.getElementById('req-id').value;
+            const data = {
+                title,
+                desc: document.getElementById('req-desc').value.trim(),
+                priority: document.getElementById('req-priority').value,
+                source: document.getElementById('req-source').value,
+                owner: document.getElementById('req-owner').value.trim(),
+                deadline: document.getElementById('req-deadline').value,
+                acceptance: document.getElementById('req-acceptance').value.trim(),
+                notes: document.getElementById('req-notes').value.trim()
+            };
+            if (id) {
+                const req = pipelineData.find(r => r.id === parseInt(id));
+                if (req) { Object.assign(req, data); req.updatedAt = new Date().toLocaleString('zh-CN'); }
+            } else {
+                const newId = pipelineData.length > 0 ? Math.max(...pipelineData.map(r => r.id)) + 1 : 1;
+                pipelineData.push({ id: newId, stage: 0, createdAt: new Date().toLocaleString('zh-CN'), ...data });
+            }
+            savePipelineData(); renderPipeline(); closeReqModal();
+            showToast(id ? '需求已更新' : '需求已创建');
+        }
+
+        function editRequirement(id) { openReqModal(id); }
+
+        function deleteRequirement(id) {
+            const req = pipelineData.find(r => r.id === id);
+            if (!req) return;
+            if (!confirm(`确定删除需求「${req.title}」吗？`)) return;
+            pipelineData = pipelineData.filter(r => r.id !== id);
+            savePipelineData(); renderPipeline();
+            showToast('需求已删除');
+        }
+
+        // ---- AI 分析 ----
+        async function analyzeRequirement(id) {
+            const req = pipelineData.find(r => r.id === id);
+            if (!req) return;
+            if (!aiSettings?.apiKey) { showToast('请先在 AI 助手中配置 API Key'); return; }
+
+            const baseUrl = aiSettings.baseUrl?.replace(/\/$/, '') || 'https://api.deepseek.com/v1';
+            const model = aiSettings.model || 'qwen-plus';
+            const stageName = PIPELINE_STAGES[req.stage]?.name || '未知';
+            const prompt = `你是资深 AI 产品经理。请分析以下需求并给出专业建议：
+
+需求标题：${req.title}
+需求描述：${req.desc || '（无）'}
+需求来源：${req.source || '—'}
+优先级：${PRIORITY_LABELS[req.priority] || 'P2'}
+当前阶段：${stageName}
+验收标准：${req.acceptance || '（无）'}
+备注：${req.notes || '（无）'}
+
+请从以下维度分析：
+1. 需求合理性评估（是否伪需求、是否有更优解）
+2. 用户价值与技术可行性
+3. 优先级建议（RICE 简评）
+4. 风险点与依赖
+5. 下一步行动建议
+
+请用简洁的要点式输出，不要超过 300 字。`;
+
+            try {
+                showToast('AI 分析中...');
+                const res = await fetch(`${baseUrl}/chat/completions`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${aiSettings.apiKey}` },
+                    body: JSON.stringify({ model, messages: [{ role: 'user', content: prompt }], max_tokens: 600, temperature: 0.7 })
+                });
+                if (!res.ok) throw new Error(`API ${res.status}`);
+                const json = await res.json();
+                req.aiAnalysis = json.choices?.[0]?.message?.content?.trim() || '分析结果为空';
+                req.aiAnalyzedAt = new Date().toLocaleString('zh-CN');
+                savePipelineData(); renderPipeline();
+                const panel = document.getElementById(`req-detail-${id}`);
+                if (panel) panel.classList.add('show');
+                showToast('AI 分析完成');
+            } catch(e) {
+                showToast('AI 分析失败: ' + e.message);
+            }
+        }
+
         // ===== 覆盖原有 renderAll 以包含新功能 =====
         function renderAll() {
-            renderGantt(); renderChannels(); renderCourse(); renderOnboarding(); renderSOP(); renderPlan(); refreshAIStats();
+            renderGantt(); renderChannels(); renderCourse(); renderOnboarding(); renderSOP(); renderPlan(); refreshAIStats(); renderPipeline();
         }
 
         // ===== 初始化 =====
         document.addEventListener('DOMContentLoaded', () => {
-            loadData(); loadChannels(); loadCourseData(); loadPlanData();
+            loadData(); loadChannels(); loadCourseData(); loadPlanData(); loadPipelineData();
             renderAll();
             updateAIStatusBadge();
             // 自动保存时同步到云端
@@ -3163,8 +3583,10 @@
 
             const origSaveSOPData = saveSOPData;
             saveSOPData = function() { origSaveSOPData(); if (currentUser) syncToCloud(); };
+
+            const origSavePipelineData = savePipelineData;
+            savePipelineData = function() { origSavePipelineData(); if (currentUser) syncToCloud(); };
         });
     </script>
 </body>
-</html>
 </html>
